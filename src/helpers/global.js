@@ -278,9 +278,10 @@ export const SelectStyles = (theme) => {
       color: state.isSelected ? '#fff' : theme === 'dark' ? '#adb5bd' : '#495057',
       '&:hover': {
         backgroundColor: theme === 'dark' ? '#495057' : '#e9ecef',
-        color: '#fff',
+        color: theme === 'dark' ? '#fff' : '#000',
       },
     }),
+
     singleValue: (provided) => ({
       ...provided,
       color: theme === 'dark' ? '#fff' : '#495057',
@@ -288,6 +289,11 @@ export const SelectStyles = (theme) => {
     placeholder: (provided) => ({
       ...provided,
       color: theme === 'dark' ? '#adb5bd' : '#6c757d',
+    }),
+    multiValue: (base) => ({
+      ...base,
+      backgroundColor: '#adb5bd',
+      color: theme === 'dark' ? '#000' : '#000',
     }),
   }
 }

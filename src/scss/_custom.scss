@@ -9,10 +9,31 @@
 }
 
 .table-header-color {
-  background-color: var(--cui-dark-bg-subtle) !important;
+  background-color: rgba(0,0,0, 0.1) !important;
 }
 
 .select-color {
   background-color: var(--cui-dark-bg-subtle) !important;
   color: var(--cui-text-default) !important;
+}
+
+.separator {
+  border-bottom: 1px dashed rgba(0,0,0, 0.3);
+  margin-top: 15px;
+  margin-bottom: 10px;
+}
+
+.w-full{
+  width: 100%;
+}
+
+@if $enable-dark-mode {
+  @include color-mode(dark) {
+    .separator {
+      border-bottom: 1px dashed rgba(255,255,255, 0.3);
+    }
+    .table-header-color {
+      background-color: rgba(255,255,255, 0.1) !important;
+    }
+  }
 }

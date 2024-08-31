@@ -68,8 +68,13 @@ const _nav = [
     items: [
       {
         component: CNavItem,
-        name: 'Entradas y Salidas de Mercancía',
-        to: '/stock',
+        name: 'Entradas de Mercadería',
+        to: '/entradas',
+      },
+      {
+        component: CNavItem,
+        name: 'Salidas de Mercadería',
+        to: '/salidas',
       },
     ],
   },

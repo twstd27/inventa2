@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import {
   useReactTable,
   getCoreRowModel,
@@ -6,7 +6,6 @@ import {
   getPaginationRowModel,
   getFilteredRowModel,
 } from '@tanstack/react-table'
-import Select from 'react-select'
 import {
   CBadge,
   CButton,
@@ -41,7 +40,7 @@ const TablaUsuarios = () => {
     paginas.push({ value: i, label: i })
   }
 
-  const columns = React.useMemo(
+  const columns = useMemo(
     () => [
       {
         accessorKey: 'nombre',

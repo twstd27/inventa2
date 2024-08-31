@@ -1,15 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import {
-  CCard,
-  CCardBody,
-  CCardHeader,
-  CCardTitle,
-  CLink,
-  CCol,
-  CRow,
-  CCollapse,
-  CButton,
-} from '@coreui/react'
+import { CCard, CCardBody, CCardHeader, CCardTitle, CCol, CRow, CButton } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { useDispatch } from 'react-redux'
 import { uiOpenModal } from '../../actions/uiAction'
@@ -48,11 +38,9 @@ const AdministrarUsuarios = () => {
             <div className="card-header-actions text-start">
               <CCardTitle>Lista de Usuarios</CCardTitle>
             </div>
-            {/* <span className="h1">Lista de Usuarios</span> */}
             <div className="card-header-actions text-end">
               <CButton color="primary" onClick={openModal}>
                 <CIcon icon={cilPlus} /> Nuevo
-                {/* <i className="fa fa-plus-circle" /> Nuevo */}
               </CButton>
             </div>
           </CCardHeader>

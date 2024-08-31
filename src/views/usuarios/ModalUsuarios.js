@@ -283,7 +283,7 @@ export const ModalUsuarios = () => {
           <CButton type="submit" color="primary" disabled={loading}>
             {loading && (
               <div className="spinner-border text-light spinner-border-sm" role="status">
-                <span className="visually-hidden">Loading...</span>
+                <span className="visually-hidden">cargando...</span>
               </div>
             )}
             {!loading && <span> {modalButton}</span>}
