@@ -1,30 +1,41 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect, useMemo } from 'react'
 import {
-  CDataTable,
   CButton,
   CRow,
   CCol,
   CCard,
-  CCardBody, CFormGroup, CLabel, CInput
-} from '@coreui/react';
-import {useDispatch, useSelector} from "react-redux";
-import {getDiario} from "../../actions/ventasAction";
-import moment from "moment";
-import Select from "react-select";
+  CCardBody,
+  CFormLabel,
+  CFormInput,
+  CContainer,
+  CTable,
+  CTableBody,
+  CTableDataCell,
+  CTableHead,
+  CTableHeaderCell,
+  CTableRow,
+} from '@coreui/react'
+import { useReactTable, getCoreRowModel, flexRender } from '@tanstack/react-table'
+import { useDispatch, useSelector } from 'react-redux'
+import { getDiario } from '../../actions/ventasAction'
+import { format } from 'date-fns'
+import Select from 'react-select'
+import SpinningIcon from '../../components/shared/SpinningIcon'
+import { Printer } from 'lucide-react'
 
 const DiarioVentas = () => {
-  const dispatch = useDispatch();
-  const {loading} = useSelector(state => state.ui);
-  const {diario} = useSelector(state => state.ventas);
-  const {sucursalesCombo} = useSelector(state => state.sucursales);
+  const dispatch = useDispatch()
+  const { loading } = useSelector((state) => state.ui)
+  const { diario } = useSelector((state) => state.ventas)
+  const { sucursalesCombo } = useSelector((state) => state.sucursales)
   const [state, setState] = useState({
-    doc_date: moment().format('YYYY-MM-DD'),
+    doc_date: format(Date.now(), 'yyyy-MM-dd'),
     sucursalVenta: null,
     total: 0,
     profit: 0,
     tax: 0,
-  });
-  const {doc_date, sucursalVenta, total, profit, tax} = state;
+  })
+  const { doc_date, sucursalVenta, total, profit, tax } = state
 
   useEffect(() => {
     setState({
@@ -32,71 +43,121 @@ const DiarioVentas = () => {
       total: 0,
       profit: 0,
       tax: 0,
-    });
-    totalesRegistros();
-  }, [diario]); // eslint-disable-line react-hooks/exhaustive-deps
+    })
+    totalesRegistros()
+  }, [diario])
 
-  const fields = [
-    { key: 'id', label: 'venta', _style: { width: '5%'} },
-    { key: 'invoice', label: 'Factura', _style: { width: '5%'} },
-    { key: 'code', label: 'Código', _style: { width: '15%'} },
-    { key: 'name', label: 'Nombre', _style: { width: '25%'} },
-    { key: 'quantity', label: 'Cantidad', _style: { width: '10%'}, _classes: 'text-right' },
-    { key: 'price', label: 'Precio/U', _style: { width: '10%'}, _classes: 'text-right' },
-    { key: 'total', label: 'Subtotal', _style: { width: '10%'}, _classes: 'text-right' },
-    { key: 'cost', label: 'Costo/U', _style: { width: '10%'}, _classes: 'text-right' },
-    { key: 'cost_total', label: 'SubTotal Costo', _style: { width: '10%'}, _classes: 'text-right' },
-    { key: 'profit', label: 'Ganancia', _style: { width: '10%'}, _classes: 'text-right' }
-  ];
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: 'id',
+        header: 'VENTA',
+      },
+      {
+        accessorKey: 'invoice',
+        header: 'FACTURA',
+        cell: ({ row }) => <span>{row.original.invoice === 1 ? 'si' : 'no'}</span>,
+      },
+      {
+        accessorKey: 'code',
+        header: 'CÓDIGO',
+      },
+      {
+        accessorKey: 'name',
+        header: 'NOMBRE',
+      },
+      {
+        accessorKey: 'quantity',
+        header: 'CANTIDAD',
+      },
+      {
+        accessorKey: 'price',
+        header: 'PRECIO',
+      },
+      {
+        accessorKey: 'total',
+        header: 'SUBTOTAL',
+        cell: ({ row }) => (
+          <span className="text-right">{(row.original.total * 1).toFixed(2)}</span>
+        ),
+      },
+      {
+        accessorKey: 'cost',
+        header: 'COSTO/U',
+      },
+      {
+        accessorKey: 'cost_total',
+        header: 'SUBTOTAL COSTO',
+        cell: ({ row }) => (
+          <span className="text-right">
+            {(row.original.quantity * 1 * (row.original.cost * 1)).toFixed(2)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: 'profit',
+        header: 'GANANCIA',
+        cell: ({ row }) => (
+          <span className="text-right">{(row.original.profit * 1).toFixed(2)}</span>
+        ),
+      },
+    ],
+    [dispatch],
+  )
 
-  const handleStateChange = ({target}) => {
+  const table = useReactTable({
+    data: diario,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  })
+
+  const handleStateChange = ({ target }) => {
     setState({
       ...state,
-      [target.name]: target.value
-    });
-    buscarRegistros(target.value, sucursalVenta?.value || '');
+      [target.name]: target.value,
+    })
+    buscarRegistros(target.value, sucursalVenta?.value || '')
   }
 
   const handleSelectChangeBranch = (values) => {
     setState({
       ...state,
-      sucursalVenta: values
-    });
-    buscarRegistros(doc_date, values.value);
+      sucursalVenta: values,
+    })
+    buscarRegistros(doc_date, values.value)
   }
 
   const buscarRegistros = (fecha, sucursal) => {
-    if(fecha !== ''){
-      if(sucursal !== null && sucursal !== undefined){
-        dispatch(getDiario({fecha, sucursal}));
+    if (fecha !== '') {
+      if (sucursal !== null && sucursal !== undefined) {
+        dispatch(getDiario({ fecha, sucursal }))
       }
     }
   }
 
   const totalesRegistros = () => {
-    if (diario.length > 0){
-      const aux = JSON.parse(JSON.stringify(diario));
-      let auxTotal = 0;
-      let auxTax = 0;
-      let auxProfit = 0;
+    if (diario.length > 0) {
+      const aux = JSON.parse(JSON.stringify(diario))
+      let auxTotal = 0
+      let auxTax = 0
+      let auxProfit = 0
       aux.forEach((item) => {
-        auxTotal += (item.total * 1);
-        auxProfit += (item.profit * 1);
-        if(item.invoice === 1){
-          auxTax += (item.total * 1);
+        auxTotal += item.total * 1
+        auxProfit += item.profit * 1
+        if (item.invoice === 1) {
+          auxTax += item.total * 1
         }
       })
-      auxTax *= 0.03;
-      auxProfit -= auxTax;
+      auxTax *= 0.03
+      auxProfit -= auxTax
       setState({
         ...state,
         total: auxTotal.toFixed(2),
         tax: auxTax.toFixed(2),
-        profit: auxProfit.toFixed(2)
-      });
+        profit: auxProfit.toFixed(2),
+      })
     }
   }
-
 
   return (
     <CRow>
@@ -105,106 +166,112 @@ const DiarioVentas = () => {
           <CCardBody>
             <CRow>
               <CCol xs="3" className="d-print-none">
-                <CFormGroup>
-                  <CLabel htmlFor="branch">Sucursal</CLabel>
-                  <Select
-                    value={sucursalVenta}
-                    onChange={handleSelectChangeBranch}
-                    options={sucursalesCombo}
-                    name="branch"/>
-                </CFormGroup>
+                <CFormLabel htmlFor="branch">Sucursal</CFormLabel>
+                <Select
+                  value={sucursalVenta}
+                  onChange={handleSelectChangeBranch}
+                  options={sucursalesCombo}
+                  name="branch"
+                />
               </CCol>
               <CCol xs="3" className="d-print-none">
-                <CFormGroup>
-                  <CLabel htmlFor="doc_date">Fecha</CLabel>
-                  <CInput
-                    type="date"
-                    name="doc_date"
-                    value={doc_date || ''}
-                    onChange={handleStateChange}/>
-                </CFormGroup>
+                <CFormInput
+                  type="date"
+                  label="Fecha"
+                  name="doc_date"
+                  value={doc_date || ''}
+                  onChange={handleStateChange}
+                />
               </CCol>
-              <CCol xs="6" className="pt-4 d-print-none">
+              <CCol xs="6" className="mt-4 d-print-none">
                 <CButton
                   color="primary"
                   disabled={loading}
-                  onClick={() => {window.print()}}
+                  onClick={() => {
+                    window.print()
+                  }}
                 >
-                  {
-                    (loading) ? (
-                      <span><i className="fa fa-spin fa-refresh"/> Cargando datos..</span>
-                    ) : (
-                      <span><i className="fa fa-print"/> Imprimir</span>
-                    )
-                  }
+                  {loading ? (
+                    <>
+                      <SpinningIcon size={16} color="white" speed="slow" className="ml-2" />{' '}
+                      Cargando Datos
+                    </>
+                  ) : (
+                    <span>
+                      <Printer size={16} className="ml-2" /> Imprimir
+                    </span>
+                  )}
                 </CButton>
               </CCol>
-              <CCol xs="12" className="d-print-none separator" />
-              <CCol xs="12" className="d-print-block">
+              <CCol xs="12" className="separator" />
+              <CCol xs="12" className="print-div">
                 <div>
                   <h2>{sucursalVenta?.label}</h2>
-                  <h2 className="text-center"><b>DIARIO</b> <span className="h3">ENTRADA DATOS</span></h2>
-                  <h5><b>FECHA: </b>{moment(doc_date).format('DD/MM/YYYY')}</h5>
+                  <h2 className="text-center">
+                    <b>DIARIO</b> {/*<span className="h3">ENTRADA DATOS</span> */}
+                  </h2>
+                  <h5>
+                    <b>FECHA: </b>
+                    {format(doc_date, 'dd/MM/yyyy')}
+                  </h5>
                 </div>
-                <CDataTable
-                  items={diario}
-                  fields={fields}
-                  hover
-                  border
-                  size="sm"
-                  noItemsViewSlot={<h5 className="text-center text-muted">No se encontraron registros</h5>}
-                  scopedSlots = {{
-                    'invoice':
-                      (item)=>(
-                        <td>
-                          {((item.invoice === 1) ? 'si' : 'no')}
-                        </td>
-                      ),
-                    'total':
-                      (item)=>(
-                        <td className="text-right">
-                          {(item.total*1).toFixed(2)}
-                        </td>
-                      ),
-                    'cost_total':
-                      (item)=>(
-                        <td className="text-right">
-                          {((item.quantity*1)*(item.cost*1)).toFixed(2)}
-                        </td>
-                      ),
-                    'profit':
-                      (item)=>(
-                        <td className="text-right">
-                          {(item.profit*1).toFixed(2)}
-                        </td>
-                      ),
-                  }}
-                />
-                <div>
-                  <table className="w-100">
-                    <tbody className="text-right">
-                    <tr>
-                      <th width="85%">Total:</th>
-                      <th width="15%">{total}</th>
-                    </tr>
-                    <tr>
-                      <th>Impuesto:</th>
-                      <th>{tax}</th>
-                    </tr>
-                    <tr>
-                      <th>Ganancia:</th>
-                      <th>{profit}</th>
-                    </tr>
-                    </tbody>
-                  </table>
-                </div>
+                <CTable small bordered>
+                  <CTableHead className="table-header-color table-sm">
+                    {table.getHeaderGroups().map((headerGroup) => (
+                      <CTableRow key={headerGroup.id}>
+                        {headerGroup.headers.map((header) => (
+                          <CTableHeaderCell key={header.id} className="table-header-color">
+                            {flexRender(header.column.columnDef.header, header.getContext())}
+                          </CTableHeaderCell>
+                        ))}
+                      </CTableRow>
+                    ))}
+                  </CTableHead>
+                  <CTableBody>
+                    {table.getRowModel().rows.map((row) => (
+                      <CTableRow key={row.id}>
+                        {row.getVisibleCells().map((cell) => (
+                          <CTableDataCell key={cell.id} className="middle-align">
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </CTableDataCell>
+                        ))}
+                      </CTableRow>
+                    ))}
+                  </CTableBody>
+                </CTable>
+                <CContainer>
+                  <CRow>
+                    <CCol xs={8}></CCol>
+                    <CCol xs={2} className="d-flex flex-column justify-content-end text-right">
+                      <span>
+                        <b>Total:</b>
+                      </span>
+                      <span>
+                        <b>Impuesto</b>
+                      </span>
+                      <span>
+                        <b>Ganacia</b>
+                      </span>
+                    </CCol>
+                    <CCol xs={2} className="d-flex flex-column justify-content-end text-right">
+                      <span>
+                        <b>{total}</b>
+                      </span>
+                      <span>
+                        <b>{tax}</b>
+                      </span>
+                      <span>
+                        <b>{profit}</b>
+                      </span>
+                    </CCol>
+                  </CRow>
+                </CContainer>
               </CCol>
             </CRow>
           </CCardBody>
         </CCard>
       </CCol>
     </CRow>
-
   )
 }
 

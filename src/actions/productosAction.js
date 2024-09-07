@@ -1,181 +1,210 @@
-import {API, types} from "../types/types";
-import axios from "axios";
-import {finishLoading, startLoading, uiCloseDialog, uiCloseModal} from "./uiAction";
-import {errorResponse} from "../helpers/global";
+import { API, types } from '../types/types'
+import axios from 'axios'
+import { finishLoading, startLoading, uiCloseDialog, uiCloseModal } from './uiAction'
+import { errorResponse } from '../helpers/global'
 
-export const getProductos = (type = '', data = {}) => {
-  let URI = '';
-  switch (type){
-    case 'combo': URI = '/products/combo'; break;
-    case 'busqueda': URI = `/products?q=${data.buscar}&b=${data.sucursal}`; break;
-    default: URI = '/products/lista'; break;
+export const getProductos = (type = '', data = {}, page = 1, limit = 5) => {
+  let URI = ''
+  switch (type) {
+    case 'combo':
+      URI = '/products/combo'
+      break
+    case 'busqueda':
+      URI = `/products?q=${data.buscar}&b=${data.sucursal}`
+      break
+    default:
+      URI = `/products/lista?page=${page}&limit=${limit}`
+      break
   }
   return async (dispatch) => {
-    dispatch(startLoading());
-    await axios.get(API + URI)
+    dispatch(startLoading())
+    await axios
+      .get(API + URI)
       .then((response) => {
-        switch (type){
+        switch (type) {
           case 'combo':
-            dispatch(setProductosCombo(response.data.data));
-            break;
+            dispatch(setProductosCombo(response.data.data))
+            break
           default:
-            dispatch(setProductos(response.data.data));
-            break;
+            dispatch(
+              setProductos(
+                response.data.data,
+                response.data.last_page,
+                response.data.total,
+                response.data.current_page,
+              ),
+            )
+            break
         }
       })
       .catch((error) => {
-        console.log(error.response);
-      });
-    dispatch(finishLoading());
+        console.log(error.response)
+      })
+    dispatch(finishLoading())
   }
 }
 
 export const registerProduct = (product, files) => {
   return async (dispatch) => {
-    dispatch(startLoading());
-    await axios.post(`${API}/products`, product)
+    dispatch(startLoading())
+    await axios
+      .post(`${API}/products`, product)
       .then(async (response) => {
-        if(response.status === 201){
+        if (response.status === 201) {
           const config = {
             fileKey: 'image',
             headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          };
-          for( let i = 0; i < files.length; i++){
-            const formData = new FormData();
-            formData.append("image", files[i]);
-            await axios.post(`${API}/products/${response.data.data.id}/uploadimg`, formData, config);
+              'Content-Type': 'multipart/form-data',
+            },
           }
-          dispatch(getProductos());
-          dispatch(setError({
-            status: '',
-            message: '',
-            errors: []
-          }));
+          for (let i = 0; i < files.length; i++) {
+            const formData = new FormData()
+            formData.append('image', files[i])
+            await axios.post(`${API}/products/${response.data.data.id}/uploadimg`, formData, config)
+          }
+          dispatch(getProductos())
+          dispatch(
+            setError({
+              status: '',
+              message: '',
+              errors: [],
+            }),
+          )
         }
-        dispatch(uiCloseModal());
+        dispatch(uiCloseModal())
       })
       .catch((error) => {
-        console.log(error.response);
-        const err = errorResponse(error);
-        dispatch(setError(err));
-      });
-    dispatch(finishLoading());
+        console.log(error.response)
+        const err = errorResponse(error)
+        dispatch(setError(err))
+      })
+    dispatch(finishLoading())
   }
 }
 
 export const modifyProduct = (product, files, deletefiles) => {
   return async (dispatch) => {
-    dispatch(startLoading());
-    await axios.put(`${API}/products/${product.id}`, product)
+    dispatch(startLoading())
+    await axios
+      .put(`${API}/products/${product.id}`, product)
       .then(async (response) => {
-        if(response.status === 200){
+        if (response.status === 200) {
           const config = {
             fileKey: 'image',
             headers: {
-              'Content-Type': 'multipart/form-data'
-            }
-          };
-
-          for( let i = 0; i < deletefiles.length; i++){
-            await axios.post(`${API}/products/${response.data.data.id}/deleteimg`, deletefiles[i]);
+              'Content-Type': 'multipart/form-data',
+            },
           }
 
-          for( let i = 0; i < files.length; i++){
-            const formData = new FormData();
-            formData.append("image", files[i]);
-            await axios.post(`${API}/products/${response.data.data.id}/uploadimg`, formData, config);
+          for (let i = 0; i < deletefiles.length; i++) {
+            await axios.post(`${API}/products/${response.data.data.id}/deleteimg`, deletefiles[i])
           }
 
-          dispatch(getProductos());
-          dispatch(setError({
-            status: '',
-            message: '',
-            errors: []
-          }));
+          for (let i = 0; i < files.length; i++) {
+            const formData = new FormData()
+            formData.append('image', files[i])
+            await axios.post(`${API}/products/${response.data.data.id}/uploadimg`, formData, config)
+          }
+
+          dispatch(getProductos())
+          dispatch(
+            setError({
+              status: '',
+              message: '',
+              errors: [],
+            }),
+          )
         }
-        dispatch(uiCloseModal());
+        dispatch(uiCloseModal())
       })
       .catch((error) => {
-        console.log(error.response);
-        const err = errorResponse(error);
-        dispatch(setError(err));
-      });
-    dispatch(finishLoading());
+        console.log(error.response)
+        const err = errorResponse(error)
+        dispatch(setError(err))
+      })
+    dispatch(finishLoading())
   }
 }
 
 export const deleteProduct = (product) => {
   return async (dispatch) => {
-    dispatch(startLoading());
-    await axios.delete(`${API}/products/${product.id}`, product)
+    dispatch(startLoading())
+    await axios
+      .delete(`${API}/products/${product.id}`, product)
       .then((response) => {
-        dispatch(getProductos());
-        dispatch(setError({
-          status: '',
-          message: '',
-          errors: []
-        }));
-        dispatch(uiCloseDialog());
+        dispatch(getProductos())
+        dispatch(
+          setError({
+            status: '',
+            message: '',
+            errors: [],
+          }),
+        )
+        dispatch(uiCloseDialog())
       })
       .catch((error) => {
-        const err = errorResponse(error);
-        dispatch(setError(err));
-      });
-    dispatch(finishLoading());
+        const err = errorResponse(error)
+        dispatch(setError(err))
+      })
+    dispatch(finishLoading())
   }
 }
 
 export const restoreProduct = (product) => {
   return async (dispatch) => {
-    dispatch(startLoading());
-    await axios.post(`${API}/products/${product.id}/restore`, product)
+    dispatch(startLoading())
+    await axios
+      .post(`${API}/products/${product.id}/restore`, product)
       .then((response) => {
-        dispatch(getProductos());
-        dispatch(setError({
-          status: '',
-          message: '',
-          errors: []
-        }));
-        dispatch(uiCloseDialog());
+        dispatch(getProductos())
+        dispatch(
+          setError({
+            status: '',
+            message: '',
+            errors: [],
+          }),
+        )
+        dispatch(uiCloseDialog())
       })
       .catch((error) => {
-        const err = errorResponse(error);
-        dispatch(setError(err));
-      });
-    dispatch(finishLoading());
+        const err = errorResponse(error)
+        dispatch(setError(err))
+      })
+    dispatch(finishLoading())
   }
 }
 
-export const setProductos = (productos) => ({
+export const setProductos = (productos, ultimaPagina, totalProductos, paginaActual) => ({
   type: types.productos.setProductos,
   payload: {
-    productos
-  }
-});
+    productos,
+    paginaActual,
+    ultimaPagina,
+    totalProductos,
+  },
+})
 
 export const setProductosCombo = (productos) => ({
   type: types.productos.setProductosCombo,
   payload: {
-    productos
-  }
-});
+    productos,
+  },
+})
 
 export const setProducto = (producto) => ({
   type: types.productos.setProducto,
   payload: {
-    producto
-  }
-});
+    producto,
+  },
+})
 
 export const setError = (error) => ({
   type: types.productos.setError,
-  payload:{
-    error
-  }
-});
+  payload: {
+    error,
+  },
+})
 
-export const resetProductos = () => ({ type: types.productos.resetModal});
+export const resetProductos = () => ({ type: types.productos.resetModal })
 
-export const resetProductosLista = () => ({ type: types.productos.resetProductos});
+export const resetProductosLista = () => ({ type: types.productos.resetProductos })

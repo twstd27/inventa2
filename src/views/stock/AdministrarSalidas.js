@@ -13,34 +13,37 @@ import {
 import CIcon from '@coreui/icons-react'
 import { useDispatch } from 'react-redux'
 import { uiOpenModal } from '../../actions/uiAction'
-import TablaProductos from './TablaProductos'
-import { ModalProductos } from './ModalProductos'
-import { DialogProductos } from './DialogProductos'
-import { getProductos, resetProductos } from '../../actions/productosAction'
-import { getMarcas } from '../../actions/marcasActions'
-import { getCategorias } from '../../actions/categoriasAction'
-import { ModalEtiqueta } from './ModalEtiqueta'
+import TablaSalidas from './TablaSalidas'
+import { ModalEntradas } from './ModalEntradas'
+import { DialogEntradas } from './DialogEntradas'
+import { getSalidas, resetEntradas } from '../../actions/stockAction'
+import { getSucursales } from '../../actions/sucursalesAction'
+import { getProductos } from '../../actions/productosAction'
 import { cilPlus } from '@coreui/icons'
 
-const AdministrarProductos = () => {
-  const [visible, setVisible] = useState(false)
+const AdministrarSalidas = () => {
   const dispatch = useDispatch()
 
+  const [visible, setVisible] = useState(false)
+
   useEffect(() => {
-    dispatch(getProductos())
-    dispatch(getMarcas('combo'))
-    dispatch(getCategorias('combo'))
+    dispatch(getSalidas(1, 5))
+    dispatch(getSucursales('combo'))
+    dispatch(getProductos('combo'))
   }, [dispatch])
 
-  const openModal = () => {
-    dispatch(resetProductos())
+  const openModal = (type) => {
+    dispatch(resetEntradas())
     dispatch(
       uiOpenModal(
         <span>
-          <CIcon icon={cilPlus} /> {`Nuevo Producto`}
+          <CIcon icon={cilPlus} /> {`Nueva ${type} de inventario`}
         </span>,
-        'Crear Producto',
-        'crear',
+        `Crear ${type} de inventario`,
+        {
+          action: 'crear',
+          type,
+        },
       ),
     )
   }
@@ -51,10 +54,15 @@ const AdministrarProductos = () => {
         <CCard>
           <CCardHeader className="d-flex justify-content-between align-items-center">
             <div className="card-header-actions text-start">
-              <CCardTitle>Lista de Productos</CCardTitle>
+              <CCardTitle>Lista de Salidas de Inventario</CCardTitle>
             </div>
             <div className="card-header-actions text-end">
-              <CButton color="primary" onClick={openModal}>
+              <CButton
+                color="primary"
+                onClick={() => {
+                  openModal('salida')
+                }}
+              >
                 <CIcon icon={cilPlus} /> Nuevo
               </CButton>
             </div>
@@ -73,15 +81,14 @@ const AdministrarProductos = () => {
             <CCollapse visible={visible}>Proximamente...</CCollapse>
           </CCardBody>
           <CCardFooter>
-            <TablaProductos />
+            <TablaSalidas />
           </CCardFooter>
         </CCard>
       </CCol>
-      <ModalProductos />
-      <ModalEtiqueta />
-      <DialogProductos />
+      <ModalEntradas />
+      <DialogEntradas />
     </CRow>
   )
 }
 
-export default AdministrarProductos
+export default AdministrarSalidas

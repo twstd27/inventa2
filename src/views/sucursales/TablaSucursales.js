@@ -24,7 +24,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { uiOpenDialog, uiOpenModal } from '../../actions/uiAction'
 import { setSucursal } from '../../actions/sucursalesAction'
 import CIcon from '@coreui/icons-react'
-import { cilCheckAlt, cilPencil, cilX } from '@coreui/icons'
+import { cilCheckAlt, cilPencil, cilX, cilWarning } from '@coreui/icons'
 
 const TablaSucursales = () => {
   const dispatch = useDispatch()
@@ -122,7 +122,7 @@ const TablaSucursales = () => {
     dispatch(
       uiOpenModal(
         <span>
-          <i className="fa fa-pencil" /> Editar Sucursal
+          <CIcon icon={cilPencil} /> Editar Sucursal
         </span>,
         'Guardar Cambios',
         'modificar',
@@ -135,7 +135,7 @@ const TablaSucursales = () => {
     dispatch(
       uiOpenDialog(
         <span>
-          <i className="fa fa-exclamation-triangle" /> Confirmación
+          <CIcon icon={cilWarning} /> Confirmación
         </span>,
         <span>
           Está seguro que quiere cambiar la sucursal a estado <strong>{tipo}</strong>?

@@ -1,7 +1,10 @@
-import {types} from "../types/types";
+import { types } from '../types/types'
 
 const initialState = {
   productos: [],
+  paginaActual: 1,
+  ultimaPagina: 1,
+  totalProductos: 0,
   producto: {
     code: '',
     name: '',
@@ -13,31 +16,34 @@ const initialState = {
     description: '',
     brand_id: '',
     marca: '',
-    categories: []
-  }
+    categories: [],
+  },
 }
 
 export const productosReducer = (state = initialState, action) => {
   switch (action.type) {
     case types.productos.setProductos:
-      return{
+      return {
         ...state,
         productos: action.payload.productos,
+        paginaActual: action.payload.paginaActual,
+        ultimaPagina: action.payload.ultimaPagina,
+        totalProductos: action.payload.totalProductos,
       }
     case types.productos.setProductosCombo:
-      return{
+      return {
         ...state,
         productosCombo: action.payload.productos,
       }
     case types.productos.setProducto:
-      return{
+      return {
         ...state,
         producto: action.payload.producto,
       }
     case types.productos.setError:
-      return{
+      return {
         ...state,
-        error: action.payload.error
+        error: action.payload.error,
       }
     case types.productos.resetModal:
       return {
@@ -45,7 +51,7 @@ export const productosReducer = (state = initialState, action) => {
         error: {
           status: '',
           message: '',
-          errors: []
+          errors: [],
         },
         producto: {
           code: '',
@@ -58,15 +64,15 @@ export const productosReducer = (state = initialState, action) => {
           description: '',
           brand_id: '',
           marca: '',
-          categories: []
-        }
+          categories: [],
+        },
       }
     case types.productos.resetProductos:
       return {
         ...state,
-        productos: []
+        productos: [],
       }
     default:
-      return state;
+      return state
   }
 }

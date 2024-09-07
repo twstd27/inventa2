@@ -1,68 +1,68 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react'
 import {
   CCard,
   CCardBody,
   CCol,
   CRow,
   CTabs,
+  CTab,
+  CTabList,
+  CTabPanel,
   CNav,
   CNavItem,
   CNavLink,
   CTabContent,
-  CTabPane
+  CTabPane,
 } from '@coreui/react'
-import {useDispatch} from "react-redux";
-import TablaVentas from "./TablaVentas";
-import {getVentas} from "../../actions/ventasAction";
-import {ModalVentas} from "./ModalVentas";
-import {DialogVentas} from "./DialogVentas";
-import Diario from "./Diario";
-import {getSucursales} from "../../actions/sucursalesAction";
+import { useDispatch } from 'react-redux'
+import TablaVentas from './TablaVentas'
+import { getVentas } from '../../actions/ventasAction'
+import { ModalVentas } from './ModalVentas'
+import { DialogVentas } from './DialogVentas'
+import Diario from './Diario'
+import { getSucursales } from '../../actions/sucursalesAction'
+import { CircleDollarSign, Tag } from 'lucide-react'
 
 const AdministrarMarcas = () => {
   const [state, setState] = useState({
-    active: 0
-  });
-  const {active} = state;
-  const dispatch = useDispatch();
+    active: 1,
+  })
+  const { active } = state
+  const dispatch = useDispatch()
 
   useEffect(() => {
-    dispatch(getVentas());
-    dispatch(getSucursales('combo'));
-  }, [dispatch]);
+    dispatch(getVentas())
+    dispatch(getSucursales('combo'))
+  }, [dispatch])
 
   return (
     <CRow>
       <CCol xs="12">
         <CCard>
           <CCardBody>
-            <CTabs activeTab={active} onActiveTabChange={() => {setState({...state, active})}}>
-              <CNav variant="tabs" className="d-print-none">
-                <CNavItem>
-                  <CNavLink>
-                    <i className="fa fa-tags"/> Lista de Ventas
-                  </CNavLink>
-                </CNavItem>
-                <CNavItem>
-                  <CNavLink>
-                    <i className="fa fa-money"/> Reporte Diario
-                  </CNavLink>
-                </CNavItem>
-              </CNav>
+            <CTabs activeItemKey={active}>
+              <CTabList variant="underline-border">
+                <CTab aria-controls="home-tab-pane" itemKey={1}>
+                  <Tag /> Lista de Ventas
+                </CTab>
+                <CTab aria-controls="profile-tab-pane" itemKey={2}>
+                  <CircleDollarSign /> Reporte Diario
+                </CTab>
+              </CTabList>
               <CTabContent>
-                <CTabPane className="pt-3">
-                  <TablaVentas/>
-                </CTabPane>
-                <CTabPane className="pt-3">
-                  <Diario/>
-                </CTabPane>
+                <CTabPanel className="py-3" aria-labelledby="home-tab-pane" itemKey={1}>
+                  <TablaVentas />
+                </CTabPanel>
+                <CTabPanel className="py-3" aria-labelledby="profile-tab-pane" itemKey={2}>
+                  <Diario />
+                </CTabPanel>
               </CTabContent>
             </CTabs>
           </CCardBody>
         </CCard>
       </CCol>
-      <ModalVentas/>
-      <DialogVentas/>
+      <ModalVentas />
+      <DialogVentas />
     </CRow>
   )
 }

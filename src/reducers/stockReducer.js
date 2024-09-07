@@ -6,6 +6,7 @@ const initialState = {
   paginaActual: 1,
   ultimaPagina: 1,
   totalEntradas: 0,
+  totalSalidas: 0,
   entrada: {
     branch_id: '',
     type: '',
@@ -30,6 +31,9 @@ export const stockReducer = (state = initialState, action) => {
       return {
         ...state,
         salidas: action.payload.salidas,
+        paginaActual: action.payload.paginaActual,
+        ultimaPagina: action.payload.ultimaPagina,
+        totalSalidas: action.payload.totalSalidas,
       }
     case types.entradas.setEntrada:
       return {

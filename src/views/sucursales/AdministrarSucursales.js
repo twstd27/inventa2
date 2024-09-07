@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { CCard, CCardBody, CCardHeader, CCol, CRow, CButton, CCardTitle } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { useDispatch } from 'react-redux'
@@ -10,7 +10,6 @@ import { DialogSucursales } from './DialogSucursales'
 import { cilPlus } from '@coreui/icons'
 
 const AdministrarSucursales = () => {
-  const [collapsed, setCollapsed] = useState(true)
   const dispatch = useDispatch()
 
   useEffect(() => {

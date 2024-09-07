@@ -1,7 +1,6 @@
 import {
   CButton,
   CCol,
-  // CDataTable,
   CModal,
   CModalBody,
   CModalFooter,
@@ -13,33 +12,34 @@ import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { uiCloseModal } from '../../actions/uiAction'
 import { format } from 'date-fns'
-// import moment from "moment";
 import { NumeroLiteral, SerialNumber } from '../../helpers/global'
 
 import { useReactTable, getCoreRowModel, flexRender } from '@tanstack/react-table'
+import { Printer } from 'lucide-react'
 
 export const ModalVentas = () => {
   const dispatch = useDispatch()
   const { modalVentasOpen, modalTitle } = useSelector((state) => state.ui)
   const { venta } = useSelector((state) => state.ventas)
 
-  const data = venta?.sale_details || [] // Usar un array vacío si está undefined
+  const data = venta?.sale_details || []
 
-  // Definir las columnas
   const columns = React.useMemo(
     () => [
       {
         accessorKey: 'product',
         header: 'Producto',
-        cell: ({ row }) => <td>{row.original.product.code + ' - ' + row.original.product.name}</td>,
+        cell: ({ row }) => (
+          <span>{row.original.product.code + ' - ' + row.original.product.name}</span>
+        ),
       },
       {
         accessorKey: 'total',
         header: 'Total',
         cell: ({ row }) => (
-          <td className="text-right font-weight-bold">
+          <span className="text-right font-weight-bold">
             {(row.original.price * row.original.quantity).toFixed(2)}
-          </td>
+          </span>
         ),
       },
     ],
@@ -53,24 +53,17 @@ export const ModalVentas = () => {
     getCoreRowModel: getCoreRowModel(),
   })
 
-  // const fields = [
-  //   { key: 'product', label: 'Producto', _style: { width: '35%' } },
-  //   { key: 'quantity', label: 'Cantidad', _style: { width: '15%' } },
-  //   { key: 'price', label: 'Precio/U', _style: { width: '15%' } },
-  //   { key: 'total', label: 'Subtotal', _style: { width: '25%' }, _classes: 'text-right' },
-  // ]
-
   const CloseModal = () => {
     dispatch(uiCloseModal())
   }
 
   return (
-    <CModal show={modalVentasOpen} onClose={CloseModal} color="primary" closeOnBackdrop={false}>
-      <CModalHeader closeButton className="d-print-none">
+    <CModal visible={modalVentasOpen} onClose={CloseModal}>
+      <CModalHeader closeButton className="d-print-none bg-primary text-white">
         <CModalTitle>{modalTitle}</CModalTitle>
       </CModalHeader>
       <CModalBody>
-        <CRow className="d-print-block custom-font-print">
+        <CRow className="print-div-ticket custom-font-print ">
           <CCol xs="12">
             <table className="table w-100 table-sm table-borderless">
               <tbody>
@@ -82,7 +75,7 @@ export const ModalVentas = () => {
                 <tr>
                   <td>
                     <b>Fecha:</b>{' '}
-                    {venta.doc_date == '' ? '-' : format(venta.doc_date, 'DD/MM/YYYY')}
+                    {venta.doc_date == '' ? '-' : format(venta.doc_date, 'dd/MM/yyyy')}
                   </td>
                   <td>
                     <b>Horas:</b> {venta.doc_date == '' ? '-' : format(venta.doc_date, 'H:mm:ss')}
@@ -132,23 +125,6 @@ export const ModalVentas = () => {
                 ))}
               </tbody>
             </table>
-            {/* <CDataTable
-              items={venta.sale_details}
-              fields={fields}
-              size="sm"
-              border
-              noItemsViewSlot={
-                <h6 className="text-center text-muted">No se agregaron productos</h6>
-              }
-              scopedSlots={{
-                product: (item) => <td>{item.product.code + ' - ' + item.product.name}</td>,
-                total: (item) => (
-                  <td className="text-right font-weight-bold">
-                    {(item.price * 1 * (item.quantity * 1)).toFixed(2)}
-                  </td>
-                ),
-              }}
-            /> */}
           </CCol>
           <CCol xs="12">
             <table className="table w-100 table-sm table-borderless">
@@ -178,7 +154,7 @@ export const ModalVentas = () => {
             window.print()
           }}
         >
-          <i className="fa fa-print" /> Imprimir
+          <Printer size={16} className="ml-2" /> Imprimir
         </CButton>
         <CButton color="secondary" onClick={CloseModal}>
           Cerrar

@@ -1,62 +1,55 @@
-import React, {useEffect, useState} from 'react';
-import {
-  CCard,
-  CCardBody,
-  CCardHeader,
-  CLink,
-  CCol,
-  CRow,
-  CCollapse, CButton
-} from '@coreui/react'
-import CIcon from "@coreui/icons-react";
-import TablaMarcas from "./TablaMarcas";
-import {useDispatch} from "react-redux";
-import {getMarcas, resetMarcas} from "../../actions/marcasActions";
-import {ModalMarcas} from "./ModalMarcas";
-import {uiOpenModal} from "../../actions/uiAction";
-import {DialogMarcas} from "./DialogMarcas";
+import React, { useEffect, useState } from 'react'
+import { CCard, CCardBody, CCardHeader, CCol, CRow, CButton, CCardTitle } from '@coreui/react'
+import CIcon from '@coreui/icons-react'
+import { useDispatch } from 'react-redux'
+import { uiOpenModal } from '../../actions/uiAction'
+import { getMarcas, resetMarcas } from '../../actions/marcasActions'
+import TablaMarcas from './TablaMarcas'
+import { ModalMarcas } from './ModalMarcas'
+import { DialogMarcas } from './DialogMarcas'
+import { cilPlus } from '@coreui/icons'
 
 const AdministrarMarcas = () => {
-  const [collapsed, setCollapsed] = useState(true);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch()
 
   useEffect(() => {
-    dispatch(getMarcas());
-  }, [dispatch]);
+    dispatch(getMarcas())
+  }, [dispatch])
 
   const openModal = () => {
-    dispatch(resetMarcas());
-    dispatch(uiOpenModal(
-      <span><i className="fa fa-plus-circle"/> Nueva Marca</span>,
-      'Crear Marca',
-      'crear')
-    );
+    dispatch(resetMarcas())
+    dispatch(
+      uiOpenModal(
+        <span>
+          <CIcon icon={cilPlus} /> Nueva Marca
+        </span>,
+        'Crear Marca',
+        'crear',
+      ),
+    )
   }
 
   return (
     <CRow>
       <CCol xs="12">
         <CCard>
-          <CCardHeader>
-            <span className="h1">Lista de Marcas</span>
-            <div className="card-header-actions">
+          <CCardHeader className="d-flex justify-content-between align-items-center">
+            <div className="card-header-actions text-start">
+              <CCardTitle>Lista de Marcas</CCardTitle>
+            </div>
+            <div className="card-header-actions text-end">
               <CButton color="primary" onClick={openModal}>
-                <i className="fa fa-plus-circle"/> Nuevo
+                <CIcon icon={cilPlus} /> Nuevo
               </CButton>
-              <CLink className="card-header-action" onClick={() => setCollapsed(!collapsed)}>
-                <CIcon name={collapsed ? 'cil-chevron-bottom':'cil-chevron-top'} />
-              </CLink>
             </div>
           </CCardHeader>
-          <CCollapse show={collapsed}>
-            <CCardBody>
-              <TablaMarcas/>
-            </CCardBody>
-          </CCollapse>
+          <CCardBody>
+            <TablaMarcas />
+          </CCardBody>
         </CCard>
       </CCol>
-      <ModalMarcas/>
-      <DialogMarcas/>
+      <ModalMarcas />
+      <DialogMarcas />
     </CRow>
   )
 }

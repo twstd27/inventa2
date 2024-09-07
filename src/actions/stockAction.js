@@ -25,16 +25,25 @@ export const getEntradas = (page = 1, limit = 5) => {
   }
 }
 
-export const getSalidas = () => {
+export const getSalidas = (page = 1, limit = 5) => {
   return async (dispatch) => {
+    dispatch(startLoading())
     await axios
-      .get(`${API}/entries/salidas`)
+      .get(`${API}/entries/salidas?page=${page}&limit=${limit}`)
       .then((response) => {
-        dispatch(setSalidas(response.data.data))
+        dispatch(
+          setSalidas(
+            response.data.data,
+            response.data.last_page,
+            response.data.total,
+            response.data.current_page,
+          ),
+        )
       })
       .catch((error) => {
         console.log(error.response)
       })
+    dispatch(finishLoading())
   }
 }
 
@@ -146,10 +155,13 @@ export const setEntradas = (entradas, ultimaPagina, totalEntradas, paginaActual)
   },
 })
 
-export const setSalidas = (salidas) => ({
+export const setSalidas = (salidas, ultimaPagina, totalSalidas, paginaActual) => ({
   type: types.salidas.setSalidas,
   payload: {
     salidas,
+    paginaActual,
+    ultimaPagina,
+    totalSalidas,
   },
 })
 

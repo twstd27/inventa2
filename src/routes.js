@@ -5,7 +5,8 @@ const Marcas = React.lazy(() => import('./views/marcas/AdministrarMarcas'))
 const Categorias = React.lazy(() => import('./views/categorias/AdministrarCategorias'))
 const Productos = React.lazy(() => import('./views/productos/AdministrarProductos'))
 const Sucursales = React.lazy(() => import('./views/sucursales/AdministrarSucursales'))
-const Stock = React.lazy(() => import('./views/stock/AdministrarEntradas'))
+const Entradas = React.lazy(() => import('./views/stock/AdministrarEntradas'))
+const Salidas = React.lazy(() => import('./views/stock/AdministrarSalidas'))
 const POS = React.lazy(() => import('./views/ventas/POS'))
 const Cotizaciones = React.lazy(() => import('./views/ventas/Cotizaciones'))
 const Reportes = React.lazy(() => import('./views/ventas/Reportes'))
@@ -22,8 +23,8 @@ const routes = [
   { path: '/categorias', name: 'Categorias', element: Categorias },
   { path: '/marcas', name: 'Marcas', element: Marcas },
   { path: '/sucursales', name: 'Sucursales', element: Sucursales },
-  { path: '/entradas', name: 'Entradas', element: Stock },
-  { path: '/salidas', name: 'Salidas', element: Stock },
+  { path: '/entradas', name: 'Entradas', element: Entradas },
+  { path: '/salidas', name: 'Salidas', element: Salidas },
   { path: '/POS', name: 'POS', element: POS },
   { path: '/cotizaciones', name: 'Cotizaciones', element: Cotizaciones },
   { path: '/reportes', name: 'Reportes de Ventas', element: Reportes },

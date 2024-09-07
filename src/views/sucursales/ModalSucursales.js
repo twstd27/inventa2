@@ -95,7 +95,7 @@ export const ModalSucursales = () => {
   return (
     <CModal visible={modalOpen} onClose={CloseModal} color="primary">
       <CForm onSubmit={handleSubmit}>
-        <CModalHeader closeButton>
+        <CModalHeader closeButton className="bg-primary text-white">
           <CModalTitle>{modalTitle}</CModalTitle>
         </CModalHeader>
         <CModalBody>

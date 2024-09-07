@@ -1,62 +1,55 @@
-import React, {useEffect, useState} from 'react';
-import {
-  CCard,
-  CCardBody,
-  CCardHeader,
-  CLink,
-  CCol,
-  CRow,
-  CCollapse, CButton
-} from '@coreui/react'
-import CIcon from "@coreui/icons-react";
-import {useDispatch} from "react-redux";
-import {uiOpenModal} from "../../actions/uiAction";
-import {getCategorias, resetCategorias} from "../../actions/categoriasAction";
-import TablaCategorias from "./TablaCategorias";
-import {ModalCategorias} from "./ModalCategorias";
-import {DialogCategorias} from "./DialogCategorias";
+import React, { useEffect } from 'react'
+import { CCard, CCardBody, CCardHeader, CCol, CRow, CButton, CCardTitle } from '@coreui/react'
+import CIcon from '@coreui/icons-react'
+import { useDispatch } from 'react-redux'
+import { uiOpenModal } from '../../actions/uiAction'
+import { getCategorias, resetCategorias } from '../../actions/categoriasAction'
+import TablaCategorias from './TablaCategorias'
+import { ModalCategorias } from './ModalCategorias'
+import { DialogCategorias } from './DialogCategorias'
+import { cilPlus } from '@coreui/icons'
 
 const AdministrarCategorias = () => {
-  const [collapsed, setCollapsed] = useState(true);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch()
 
   useEffect(() => {
-    dispatch(getCategorias());
-  }, [dispatch]);
+    dispatch(getCategorias())
+  }, [dispatch])
 
   const openModal = () => {
-    dispatch(resetCategorias());
-    dispatch(uiOpenModal(
-      <span><i className="fa fa-plus-circle"/> Nueva Categoria</span>,
-      'Crear Categoria',
-      'crear')
-    );
+    dispatch(resetCategorias())
+    dispatch(
+      uiOpenModal(
+        <span>
+          <CIcon icon={cilPlus} /> Nueva Categoria
+        </span>,
+        'Crear Categoria',
+        'crear',
+      ),
+    )
   }
 
   return (
     <CRow>
       <CCol xs="12">
         <CCard>
-          <CCardHeader>
-            <span className="h1">Lista de Categorias</span>
-            <div className="card-header-actions">
+          <CCardHeader className="d-flex justify-content-between align-items-center">
+            <div className="card-header-actions text-start">
+              <CCardTitle>Lista de Categorias</CCardTitle>
+            </div>
+            <div className="card-header-actions text-end">
               <CButton color="primary" onClick={openModal}>
-                <i className="fa fa-plus-circle"/> Nuevo
+                <CIcon icon={cilPlus} /> Nuevo
               </CButton>
-              <CLink className="card-header-action" onClick={() => setCollapsed(!collapsed)}>
-                <CIcon name={collapsed ? 'cil-chevron-bottom':'cil-chevron-top'} />
-              </CLink>
             </div>
           </CCardHeader>
-          <CCollapse show={collapsed}>
-            <CCardBody>
-              <TablaCategorias/>
-            </CCardBody>
-          </CCollapse>
+          <CCardBody>
+            <TablaCategorias />
+          </CCardBody>
         </CCard>
       </CCol>
-      <ModalCategorias/>
-      <DialogCategorias/>
+      <ModalCategorias />
+      <DialogCategorias />
     </CRow>
   )
 }
