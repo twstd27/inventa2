@@ -1,5 +1,7 @@
 # See https://help.github.com/ignore-files/ for more about ignoring files.
 
+# === Root ===
+
 # dependencies
 /node_modules
 package-lock.json
@@ -23,3 +25,33 @@ yarn.lock
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# === frontend ===
+frontend/node_modules
+frontend/package-lock.json
+frontend/yarn.lock
+frontend/coverage
+frontend/build
+frontend/.eslintcache
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# === backend ===
+backend/node_modules
+backend/package-lock.json
+backend/yarn.lock
+backend/coverage
+backend/build
+backend/.eslintcache
+backend/.env.local
+backend/.env.development.local
+backend/.env.test.local
+backend/.env.production.local
+backend/npm-debug.log*
+backend/yarn-debug.log*
+backend/yarn-error.log*
