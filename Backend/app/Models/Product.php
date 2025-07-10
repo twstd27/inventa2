@@ -20,6 +20,10 @@ class Product extends Model
         'price_discount',
         'price_wholesome',
         'cost',
+        'price_percent',
+        'discount_percent',
+        'wholesome_percent',
+        'cost_usd',
         'brand_id',
         'user_id'
     ];

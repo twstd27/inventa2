@@ -40,67 +40,63 @@ class ProductController extends Controller
 
         $products->each(function ($product) use ($request) {
 
-            $product->marca = Brand::withTrashed()->findOrFail($product->brand_id)->name;
-            
-            $query = DB::select("
-                SELECT SUM(
-                   CASE WHEN `a`.`type` = 'entrada'
-                       THEN `b`.`quantity`
-                       ELSE -`b`.`quantity` END) AS `quantity`
-                FROM (`entries` `a` LEFT JOIN `entry_details` `b` ON (`a`.`id` = `b`.`entry_id`))
-                WHERE `a`.`deleted_at` IS NULL AND
-                      `a`.`branch_id` = ".$request->b." AND
-                      `b`.`product_id` = ".$product->id."
-                GROUP BY `a`.`branch_id`,`b`.`product_id`
-            ");
-            
-            if(isset($query[0])){
-                $product->quantity = ($query[0]->quantity == null) ? "0.00" : $query[0]->quantity;
-            }
-            else{
-                $product->quantity = "0.00";
-            }
+          $product->marca = Brand::withTrashed()->findOrFail($product->brand_id)->name;
+          
+          $query = DB::select("
+              SELECT SUM(
+                CASE WHEN `a`.`type` = 'entrada'
+                    THEN `b`.`quantity`
+                    ELSE -`b`.`quantity` END) AS `quantity`
+              FROM (`entries` `a` LEFT JOIN `entry_details` `b` ON (`a`.`id` = `b`.`entry_id`))
+              WHERE `a`.`deleted_at` IS NULL AND
+                    `a`.`branch_id` = ".$request->b." AND
+                    `b`.`product_id` = ".$product->id."
+              GROUP BY `a`.`branch_id`,`b`.`product_id`
+          ");
+          
+          if(isset($query[0])){
+              $product->quantity = ($query[0]->quantity == null) ? "0.00" : $query[0]->quantity;
+          }
+          else{
+              $product->quantity = "0.00";
+          }
 
-            if($product->price_type == '1'){
-              $query_price_list = DB::select("
-                SELECT t2.percent 
-                FROM `params` t1
-                LEFT JOIN `pricelists` t2 ON t1.value = t2.id
-                WHERE t1.name = 'ListaPrecioDefecto' AND t2.id = t1.value
-              ");
+          $exchange_rate_row = DB::select("SELECT value FROM `params` WHERE name = 'TipoCambio' LIMIT 1");
+          $exchange_rate = isset($exchange_rate_row[0]) ? (float)$exchange_rate_row[0]->value : 6.96;
 
-              if(isset($query_price_list[0])){
-                $product->price = round($product->price + ($product->price * $query_price_list[0]->percent / 100), 2);
-                $product->price_discount = round($product->price_discount + ($product->price_discount * $query_price_list[0]->percent / 100), 2);
-                $product->price_wholesome = round($product->price_wholesome + ($product->price_wholesome * $query_price_list[0]->percent / 100), 2);
-              }
-            }
+          $auxPrice = round(($product->cost_usd * $exchange_rate * (1 + $product->price_percent)), 2);
+          $auxPriceDiscount = round(($product->cost_usd * $exchange_rate * (1 + $product->discount_percent)), 2);
+          $auxPriceWholesome = round(($product->cost_usd * $exchange_rate * (1 + $product->wholesome_percent)), 2);
+          
+          $product->price = number_format((ceil($auxPrice * 2) / 2), 2, ".", "");
+          $product->price_discount = number_format((ceil($auxPriceDiscount * 2) / 2), 2, ".", "");
+          $product->price_wholesome = number_format((ceil($auxPriceWholesome * 2) / 2), 2, ".", "");
 
-            $product->categories->each(function ($category) {
-                $category->value = $category->id;
-                $category->label = $category->name;
-                unset(
-                    $category->id,
-                    $category->name,
-                    $category->description,
-                    $category->created_at,
-                    $category->deleted_at,
-                    $category->updated_at,
-                    $category->pivot
-                );
-            });
+          $product->categories->each(function ($category) {
+              $category->value = $category->id;
+              $category->label = $category->name;
+              unset(
+                  $category->id,
+                  $category->name,
+                  $category->description,
+                  $category->created_at,
+                  $category->deleted_at,
+                  $category->updated_at,
+                  $category->pivot
+              );
+          });
 
-            $product->images->each(function ($image) {
-                unset(
-                    $image->created_at,
-                    $image->updated_at,
-                    $image->pivot
-                );
-            });
+          $product->images->each(function ($image) {
+              unset(
+                  $image->created_at,
+                  $image->updated_at,
+                  $image->pivot
+              );
+          });
 
-        });
+      });
 
-        return response()->json(['data' => $products],200);
+      return response()->json(['data' => $products],200);
     }
 
     /**
@@ -116,10 +112,13 @@ class ProductController extends Controller
             'code' => 'required',
             'name' => 'required',
             'price' => 'required',
-            'price_type' => 'required',
             'price_discount' => 'required',
             'price_wholesome' => 'required',
             'cost' => 'required',
+            'price_percent' => 'required',
+            'discount_percent' => 'required',
+            'wholesome_percent' => 'required',
+            'cost_usd' => 'required',
             'brand_id' => 'required',
             'user_id' => 'required'
         ];
@@ -135,14 +134,79 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param Product $product
+     * @param $id
      * @return JsonResponse
      */
-    public function show(Product $product)
+    public function show($id)
     {
-        $producto = Product::findOrFail($product->id);
+        $producto = Product::where('code', $id)->first();
 
-        return response()->json(['data' => $producto],200);
+        if (!$producto) {
+            return response()->json([
+                'message' => "Producto no encontrado"
+            ], 404);
+        }
+
+        $producto->marca = Brand::withTrashed()->findOrFail($producto->brand_id)->name;
+            
+        $query = DB::select("
+            SELECT SUM(
+                CASE WHEN `a`.`type` = 'entrada'
+                    THEN `b`.`quantity`
+                    ELSE -`b`.`quantity` END) AS `quantity`
+            FROM (`entries` `a` LEFT JOIN `entry_details` `b` ON (`a`.`id` = `b`.`entry_id`))
+            WHERE `a`.`deleted_at` IS NULL AND
+                  `a`.`branch_id` = 1 AND
+                  `b`.`product_id` = ".$producto->id."
+            GROUP BY `a`.`branch_id`,`b`.`product_id`
+        "); 
+        // modificar branch_id CV 2 - BIGTOOL 1
+        
+        if(isset($query[0])){
+            $producto->quantity = ($query[0]->quantity == null) ? "0.00" : $query[0]->quantity;
+        }
+        else{
+            $producto->quantity = "0.00";
+        }
+
+        $exchange_rate_row = DB::select("SELECT value FROM `params` WHERE name = 'TipoCambio' LIMIT 1");
+        $exchange_rate = isset($exchange_rate_row[0]) ? (float)$exchange_rate_row[0]->value : 6.96;
+
+        $auxPrice = round(($producto->cost_usd * $exchange_rate * (1 + $producto->price_percent)), 2);
+        $auxPriceDiscount = round(($producto->cost_usd * $exchange_rate * (1 + $producto->discount_percent)), 2);
+        $auxPriceWholesome = round(($producto->cost_usd * $exchange_rate * (1 + $producto->wholesome_percent)), 2);
+        
+        $producto->price = number_format((ceil($auxPrice * 2) / 2), 2, ".", "");
+        $producto->price_discount = number_format((ceil($auxPriceDiscount * 2) / 2), 2, ".", "");
+        $producto->price_wholesome = number_format((ceil($auxPriceWholesome * 2) / 2), 2, ".", "");
+
+
+        $producto->categories->each(function ($category) {
+            $category->value = $category->id;
+            $category->label = $category->name;
+            unset(
+                $category->id,
+                $category->name,
+                $category->description,
+                $category->created_at,
+                $category->deleted_at,
+                $category->updated_at,
+                $category->pivot
+            );
+        });
+
+        $producto->images->each(function ($image) {
+            unset(
+                $image->created_at,
+                $image->updated_at,
+                $image->pivot
+            );
+        });
+
+        return response()->json(['producto' => $producto], 200);
+        // $producto = Product::findOrFail($id);
+
+        // return response()->json(['data' => $producto],200);
     }
 
     /**
@@ -164,6 +228,10 @@ class ProductController extends Controller
             'price_discount',
             'price_wholesome',
             'cost',
+            'price_percent',
+            'discount_percent',
+            'wholesome_percent',
+            'cost_usd',
             'brand_id'
         ]));
 
@@ -250,67 +318,6 @@ class ProductController extends Controller
       });
 
       return response()->json($products, 200);
-		    // $perPage = $request->input('per_page', 5);
-        // $page = $request->input('page', 1);
-
-        // $products = Product::withTrashed()
-        //     ->with(['categories', 'images'])
-        //     ->paginate($perPage, ['*'], 'page', $page);
-
-        // $products->getCollection()->transform(function ($product) {
-        //     $product->marca = Brand::withTrashed()->findOrFail($product->brand_id)->name;
-
-        //     $product->categories->transform(function ($category) {
-        //         return [
-        //             'value' => $category->id,
-        //             'label' => $category->name,
-        //         ];
-        //     });
-
-        //     $product->images = $product->images->map(function ($image) {
-        //         return [
-        //             'id' => $image->name,
-        //         ];
-        //     });
-        //     // unset($product->brand);
-
-        //     return $product;
-        // });
-
-        // return response()->json($products, 200);
-
-
-        // $products = Product::withTrashed()->get();
-
-        // $products->each(function ($product) {
-
-        //     $product->marca = Brand::withTrashed()->findOrFail($product->brand_id)->name;
-
-        //     $product->categories->each(function ($category) {
-        //         $category->value = $category->id;
-        //         $category->label = $category->name;
-        //         unset(
-        //             $category->id,
-        //             $category->name,
-        //             $category->description,
-        //             $category->created_at,
-        //             $category->deleted_at,
-        //             $category->updated_at,
-        //             $category->pivot
-        //         );
-        //     });
-
-        //     $product->images->each(function ($image) {
-        //         unset(
-        //             $image->created_at,
-        //             $image->updated_at,
-        //             $image->pivot
-        //         );
-        //     });
-
-        // });
-
-        // return response()->json(['data' => $products],200);
     }
 
     /**
@@ -381,6 +388,29 @@ class ProductController extends Controller
         });
 
         return response()->json(['data' => $products],200);
+    }
+
+    /**
+     * Show all products for etiquetas.
+     *
+     * @return JsonResponse
+     */
+    public function Etiquetas()
+    {
+      $products = Product::select('price_percent', 'code', 'name', 'cost_usd')->get();
+
+      $products->each(function ($product) {
+        $exchange_rate_row = DB::select("SELECT value FROM `params` WHERE name = 'TipoCambio' LIMIT 1");
+        $exchange_rate = isset($exchange_rate_row[0]) ? (float)$exchange_rate_row[0]->value : 6.96;
+
+        $auxPrice = round(($product->cost_usd * $exchange_rate * (1 + $product->price_percent)), 2);  
+        $product->price = number_format((ceil($auxPrice * 2) / 2), 2, ".", "");
+        unset(
+            $product->price_percent
+        );
+      });
+
+      return response()->json(['data' => $products],200);
     }
 
     /**

@@ -165,7 +165,9 @@ class UserController extends Controller
 
     public function Lista()
     {
-        $users = User::withTrashed()->get();
+        $users = User::withTrashed()
+            ->orderByRaw('CASE WHEN deleted_at IS NULL THEN 0 ELSE 1 END')
+            ->get();
 
         $users->each(function ($user) {
             $user->rol = Role::withTrashed()->findOrFail($user->role_id)->name;

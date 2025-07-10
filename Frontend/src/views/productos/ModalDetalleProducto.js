@@ -4,8 +4,6 @@ import {
   CCardBody,
   CCardHeader,
   CCarousel,
-  // CCarouselControl,
-  // CCarouselInner,
   CCarouselItem,
   CCol,
   CModal,
@@ -15,10 +13,11 @@ import {
   CModalTitle,
   CRow,
 } from '@coreui/react'
-import React from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseModal } from '../../actions/uiAction'
+import { uiCloseModal, uiOpenProductoEtiquetaModal } from '../../actions/uiAction'
 import { DISK } from '../../types/types'
+import CIcon from '@coreui/icons-react'
+import { cilTag, cilPrint } from '@coreui/icons'
 
 export const ModalDetalleProducto = (props) => {
   const dispatch = useDispatch()
@@ -27,6 +26,24 @@ export const ModalDetalleProducto = (props) => {
 
   const CloseModal = () => {
     dispatch(uiCloseModal())
+  }
+
+  const openModalEtiqueta = () => {
+    dispatch(uiCloseModal())
+
+    setTimeout(() => {
+      dispatch(
+        uiOpenProductoEtiquetaModal(
+          <span>
+            <CIcon icon={cilTag} /> Etiqueta
+          </span>,
+          <span>
+            <CIcon icon={cilPrint} /> Imprimir Etiqueta
+          </span>,
+          'modificar',
+        ),
+      )
+    }, 150)
   }
 
   return (
@@ -46,16 +63,12 @@ export const ModalDetalleProducto = (props) => {
                 ))}
               </div>
               {producto?.images.length > 0 ? (
-                <CCarousel controls indicators>
+                <CCarousel controls indicators interval={false}>
                   {producto.images.map((image) => (
                     <CCarouselItem key={image.id}>
                       <img className="d-block w-100" src={`${DISK}/${image.name}`} alt="slide" />
                     </CCarouselItem>
                   ))}
-                  {/* <CCarouselInner>
-                  </CCarouselInner> */}
-                  {/* <CCarouselControl direction="prev"/>
-                    <CCarouselControl direction="next"/> */}
                 </CCarousel>
               ) : (
                 <img width="100%" src={'./img/product_default.png'} alt="img" />
@@ -119,6 +132,9 @@ export const ModalDetalleProducto = (props) => {
             {loading ? <i className="fa fa-spinner fa-spin" /> : <span> {modalButton}</span>}
           </CButton>
         )}{' '}
+        <CButton color="primary" onClick={openModalEtiqueta}>
+          <CIcon icon={cilTag} /> Etiqueta
+        </CButton>
         <CButton color="secondary" onClick={CloseModal}>
           Cerrar
         </CButton>

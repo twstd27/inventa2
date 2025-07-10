@@ -12,6 +12,9 @@ export const getProductos = (type = '', data = {}, page = 1, limit = 5) => {
     case 'busqueda':
       URI = `/products?q=${data.buscar}&b=${data.sucursal}`
       break
+    case 'etiquetas':
+      URI = `/products/etiquetas`
+      break
     default:
       URI = `/products/lista?page=${page}&limit=${limit}`
       if (data.search) {
@@ -31,6 +34,9 @@ export const getProductos = (type = '', data = {}, page = 1, limit = 5) => {
           case 'busqueda':
             dispatch(setProductos(response.data.data, 1, 10, 10))
             break
+          case 'etiquetas':
+            dispatch(setProductosEtiqueta(response.data.data))
+            break
           default:
             dispatch(
               setProductos(
@@ -41,6 +47,33 @@ export const getProductos = (type = '', data = {}, page = 1, limit = 5) => {
               ),
             )
             break
+        }
+      })
+      .catch((error) => {
+        console.log(error.response)
+      })
+    dispatch(finishLoading())
+  }
+}
+
+export const getProducto = (code) => {
+  return async (dispatch) => {
+    dispatch(startLoading())
+    await axios
+      .get(API + `/products/${code}`)
+      .then((response) => {
+        if (response.status === 200) {
+          dispatch(setProducto(response.data.producto))
+        }
+        if (response.status === 404) {
+          dispatch(
+            setError({
+              status: '404',
+              message: 'Producto no encontrado',
+              errors: [],
+            }),
+          )
+          return
         }
       })
       .catch((error) => {
@@ -194,6 +227,13 @@ export const setProductosCombo = (productos) => ({
   type: types.productos.setProductosCombo,
   payload: {
     productos,
+  },
+})
+
+export const setProductosEtiqueta = (productos) => ({
+  type: types.productos.setProductosEtiqueta,
+  payload: {
+    productosEtiqueta: productos,
   },
 })
 

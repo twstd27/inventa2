@@ -100,6 +100,16 @@
     height: 1in; /* 1 inch de alto */
   }
 
+  #etiqueta2{
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  #etiqueta_pagina {
+    width: 33.33%;
+    display: inline-block; /* para que se alineen en una fila */
+    box-sizing: border-box;
+  }
+
   .precio_etiqueta {
     font-size: 24px;
   }
@@ -118,9 +128,9 @@
   .table-print2{
     width: 95% !important;
   }
-  // .print-none {
-  //   display: none;
-  // }
+  .no-print {
+    display: none;
+  }
   
   // .print-div {
   //     background-color: white;
@@ -168,3 +178,4 @@
     }
   }
 }
+

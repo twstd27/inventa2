@@ -58,6 +58,15 @@ const _nav = [
         name: 'Marcas',
         to: '/marcas',
       },
+      {
+        component: CNavItem,
+        name: 'Etiquetas',
+        to: '/etiquetas',
+        badge: {
+          color: 'success',
+          text: 'Nuevo',
+        },
+      },
     ],
   },
   {
@@ -99,11 +108,11 @@ const _nav = [
         name: 'Sucursales',
         to: '/sucursales',
       },
-      {
-        component: CNavItem,
-        name: 'Lista de Precios',
-        to: '/listaprecios',
-      },
+      // {
+      //   component: CNavItem,
+      //   name: 'Lista de Precios',
+      //   to: '/listaprecios',
+      // },
       {
         component: CNavItem,
         name: 'Parámetros del Sistema',

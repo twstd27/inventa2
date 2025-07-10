@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   CAlert,
   CButton,
@@ -15,19 +16,23 @@ import {
   CModalTitle,
   CRow,
   CFormTextarea,
-  CFormSelect,
-  CFormSwitch,
+  CInputGroup,
+  CInputGroupText,
+  CAlertLink,
 } from '@coreui/react'
 import Select from 'react-select'
 import { useDispatch, useSelector } from 'react-redux'
 import { uiCloseModal } from '../../actions/uiAction'
 import { DISK } from '../../types/types'
 import { modifyProduct, registerProduct } from '../../actions/productosAction'
+import { getParams } from '../../actions/paramsAction'
 import CIcon from '@coreui/icons-react'
-import { cilX } from '@coreui/icons'
+import { cilX, cilPen, cilImagePlus, cilCamera } from '@coreui/icons'
 import { SelectStyles } from '../../helpers/global'
+import imageCompression from 'browser-image-compression'
 
 export const ModalProductos = () => {
+  const navigate = useNavigate()
   const dispatch = useDispatch()
   const { usuario } = useSelector((state) => state.auth)
   const { modalOpen, modalTitle, modalButton, modalAction, loading } = useSelector(
@@ -41,12 +46,14 @@ export const ModalProductos = () => {
   const { categoriasCombo } = useSelector((state) => state.categorias)
   const { producto, error: errorForm } = useSelector((state) => state.productos)
   const [formValues, setFormValues] = useState(producto)
+  const [formLoading, setFormLoading] = useState(false)
   const [categoriasProducto, setCategoriasProducto] = useState(null)
   const [marcaProducto, setMarcaProducto] = useState(null)
   const [imagen, setImagen] = useState('')
   const [imagenes, setImagenes] = useState([])
   const [tempImagenes, setTempImagenes] = useState([])
   const [tempImagenesData, setTempImagenesData] = useState([])
+  const [params, setParams] = useState([])
   const [state, setState] = useState({
     errName: false,
     errCode: false,
@@ -54,6 +61,10 @@ export const ModalProductos = () => {
     errPriceDiscount: false,
     errPriceWholesome: false,
     errCost: false,
+    errPricePercent: false,
+    errDiscountPercent: false,
+    errWholesomePercent: false,
+    errCostUsd: false,
     errImg: '',
     errCategories: '',
     errBrand: '',
@@ -61,6 +72,7 @@ export const ModalProductos = () => {
 
   useEffect(() => {
     if (producto) {
+      setFormLoading(true)
       setFormValues(producto)
       setMarcaProducto({
         value: producto.brand_id,
@@ -78,19 +90,133 @@ export const ModalProductos = () => {
         errPriceDiscount: false,
         errPriceWholesome: false,
         errCost: false,
+        errPricePercent: false,
+        errDiscountPercent: false,
+        errWholesomePercent: false,
+        errCostUsd: false,
         errImg: '',
         errCategories: '',
         errBrand: '',
       })
+      setTimeout(() => setFormLoading(false), 0)
     }
   }, [producto, setFormValues])
 
+  useEffect(() => {
+    const fetchParams = async () => {
+      try {
+        const data = await dispatch(getParams())
+        setParams(data)
+      } catch (error) {
+        console.error('Error fetching params:', error)
+      }
+    }
+
+    fetchParams()
+  }, [dispatch])
+
+  // Recalcula precios cuando cambian params, producto o los campos relevantes
+  useEffect(() => {
+    if (!params.length) return
+    let tipoCambio = params[3]?.value ? parseFloat(params[3].value) : 6.96
+    let cost_usd = parseFloat(formValues.cost_usd) || 0
+    let cost = cost_usd ? (tipoCambio * cost_usd).toFixed(2) : parseFloat(formValues.cost) || 0
+    const pricePercent = parseFloat(formValues.price_percent) || 0
+    const wholesomePercent = parseFloat(formValues.wholesome_percent) || 0
+    const discountPercent = parseFloat(formValues.discount_percent) || 0
+    const price = (cost * (1 + pricePercent)).toFixed(2)
+    const price_wholesome = (cost * (1 + wholesomePercent)).toFixed(2)
+    const price_discount = (cost * (1 + discountPercent)).toFixed(2)
+    setFormValues((prev) => ({
+      ...prev,
+      cost,
+      price,
+      price_wholesome,
+      price_discount,
+    }))
+  }, [
+    params,
+    producto,
+    formValues.cost_usd,
+    formValues.price_percent,
+    formValues.wholesome_percent,
+    formValues.discount_percent,
+  ])
+
   const handleInputChange = ({ target }) => {
     const value = target.type === 'checkbox' ? target.checked : target.value
-    setFormValues({
+    let newFormValues = {
       ...formValues,
       [target.name]: value,
-    })
+    }
+
+    // Solo hacer cálculos si no estamos cargando el formulario
+    if (!formLoading) {
+      // Si el campo modificado es price_percent, recalcula price
+      if (target.name === 'price_percent') {
+        const costNum = parseFloat(newFormValues.cost) || 0
+        const percentNum = parseFloat(value) || 0
+        newFormValues.price = (costNum * (1 + percentNum)).toFixed(2)
+      }
+
+      // Si el campo modificado es wholesome_percent, recalcula price_wholesome
+      if (target.name === 'wholesome_percent') {
+        const costNum = parseFloat(newFormValues.cost) || 0
+        const percentNum = parseFloat(value) || 0
+        newFormValues.price_wholesome = (costNum * (1 + percentNum)).toFixed(2)
+      }
+
+      // Si el campo modificado es discount_percent, recalcula price_discount
+      if (target.name === 'discount_percent') {
+        const costNum = parseFloat(newFormValues.cost) || 0
+        const percentNum = parseFloat(value) || 0
+        newFormValues.price_discount = (costNum * (1 + percentNum)).toFixed(2)
+      }
+
+      // Si el campo modificado es cost, recalcula todos los precios dependientes
+      if (target.name === 'cost') {
+        const costNum = parseFloat(value) || 0
+        const pricePercent = parseFloat(newFormValues.price_percent) || 0
+        const wholesomePercent = parseFloat(newFormValues.wholesome_percent) || 0
+        const discountPercent = parseFloat(newFormValues.discount_percent) || 0
+        if (pricePercent) {
+          newFormValues.price = (costNum * (1 + pricePercent)).toFixed(2)
+        }
+        if (wholesomePercent) {
+          newFormValues.price_wholesome = (costNum * (1 + wholesomePercent)).toFixed(2)
+        }
+        if (discountPercent) {
+          newFormValues.price_discount = (costNum * (1 + discountPercent)).toFixed(2)
+        }
+      }
+
+      // Si el campo modificado es cost_usd, recalcula cost en base a tipoCambio
+      if (target.name === 'cost_usd') {
+        const costUsdNum = parseFloat(value) || 0
+        newFormValues.cost = (tipoCambio * costUsdNum).toFixed(2)
+        // También recalcula los precios dependientes si hay porcentajes
+        const pricePercent = parseFloat(newFormValues.price_percent) || 0
+        const wholesomePercent = parseFloat(newFormValues.wholesome_percent) || 0
+        const discountPercent = parseFloat(newFormValues.discount_percent) || 0
+        if (pricePercent) {
+          newFormValues.price = (parseFloat(newFormValues.cost) * (1 + pricePercent)).toFixed(2)
+        }
+        if (wholesomePercent) {
+          newFormValues.price_wholesome = (
+            parseFloat(newFormValues.cost) *
+            (1 + wholesomePercent)
+          ).toFixed(2)
+        }
+        if (discountPercent) {
+          newFormValues.price_discount = (
+            parseFloat(newFormValues.cost) *
+            (1 + discountPercent)
+          ).toFixed(2)
+        }
+      }
+    }
+
+    setFormValues(newFormValues)
   }
 
   const handleSelectChangeBrand = (value) => {
@@ -101,30 +227,32 @@ export const ModalProductos = () => {
     setCategoriasProducto(values)
   }
 
-  const handleInputImgChange = (e) => {
+  const handleInputImgChange = async (e) => {
     let errorValidation = ''
     let file = e.target.files[0]
-    setImagen(e.target.value)
-    switch (e.target.value.split('.').pop()) {
-      case 'jpg':
-      case 'png':
-      case 'jpeg':
-        if (e.target.files[0].size < 2000000) {
-          const objectUrl = URL.createObjectURL(file)
-          setTempImagenes([...tempImagenes, objectUrl])
-          setTempImagenesData([...tempImagenesData, file])
-        } else {
-          errorValidation = 'el archivo debe pesar menos de 2Mb'
+
+    if (file) {
+      try {
+        const options = {
+          maxSizeMB: 1, // máximo 1MB
+          maxWidthOrHeight: 1280, // máximo 1280px de ancho o alto
+          useWebWorker: true,
         }
-        break
-      default:
-        errorValidation = 'extensiones de imagenes permitidas: .jpg .jpeg .png'
-        break
+        const compressedFile = await imageCompression(file, options)
+        const objectUrl = URL.createObjectURL(compressedFile)
+        setTempImagenes([...tempImagenes, objectUrl])
+        setTempImagenesData([...tempImagenesData, compressedFile])
+      } catch (error) {
+        errorValidation = 'Error al comprimir la imagen'
+      }
     }
+
     setState({
       ...state,
       errImg: errorValidation,
     })
+
+    e.target.value = ''
   }
 
   const deleteTempImg = (x) => {
@@ -158,6 +286,10 @@ export const ModalProductos = () => {
                 price_discount,
                 price_wholesome,
                 cost,
+                price_percent,
+                wholesome_percent,
+                discount_percent,
+                cost_usd,
                 user_id: usuario.id,
                 brand_id: marcaProducto.value,
                 categories: productCategories,
@@ -180,6 +312,10 @@ export const ModalProductos = () => {
                 price_discount,
                 price_wholesome,
                 cost,
+                price_percent,
+                wholesome_percent,
+                discount_percent,
+                cost_usd,
                 brand_id: marcaProducto.value,
                 categories: productCategories,
               },
@@ -202,6 +338,10 @@ export const ModalProductos = () => {
       price: false,
       price_discount: false,
       price_wholesome: false,
+      price_percent: false,
+      discount_percent: false,
+      wholesome_percent: false,
+      cost_usd: false,
       categories: '',
       brand: '',
       cost: false,
@@ -231,6 +371,22 @@ export const ModalProductos = () => {
       invalid.cost = true
       valid = false
     }
+    if (isNaN(price_percent)) {
+      invalid.price_percent = true
+      valid = false
+    }
+    if (isNaN(discount_percent)) {
+      invalid.discount_percent = true
+      valid = false
+    }
+    if (isNaN(wholesome_percent)) {
+      invalid.wholesome_percent = true
+      valid = false
+    }
+    if (isNaN(cost_usd)) {
+      invalid.cost_usd = true
+      valid = false
+    }
     if (categoriasProducto === null || categoriasProducto === undefined) {
       invalid.categories = 'este campo no puede estar vacío'
       valid = false
@@ -255,9 +411,13 @@ export const ModalProductos = () => {
       errName: invalid.name,
       errCode: invalid.code,
       errPrice: invalid.price,
-      errCost: invalid.cost,
       errPriceDiscount: invalid.price_discount,
       errPriceWholesome: invalid.price_wholesome,
+      errCost: invalid.cost,
+      errPricePercent: invalid.price_percent,
+      errDiscountPercent: invalid.discount_percent,
+      errWholesomePercent: invalid.wholesome_percent,
+      errCostUsd: invalid.cost_usd,
       errCategories: invalid.categories,
       errBrand: invalid.brand,
       errImg: '',
@@ -271,21 +431,39 @@ export const ModalProductos = () => {
     errCode,
     errImg,
     errPrice,
-    errCost,
     errPriceDiscount,
     errPriceWholesome,
+    errCost,
+    errPricePercent,
+    errDiscountPercent,
+    errWholesomePercent,
+    errCostUsd,
     errCategories,
     errBrand,
   } = state
-  const { id, name, description, code, price, price_discount, price_wholesome, cost, price_type } =
-    formValues
+  const {
+    id,
+    name,
+    description,
+    code,
+    price,
+    price_discount,
+    price_wholesome,
+    cost,
+    price_type,
+    price_percent,
+    wholesome_percent,
+    discount_percent,
+    cost_usd,
+  } = formValues
+  const tipoCambio = params[3]?.value || 6.96
 
   const CloseModal = () => {
     dispatch(uiCloseModal())
   }
 
   return (
-    <CModal visible={modalOpen} onClose={CloseModal} size="lg">
+    <CModal visible={modalOpen} onClose={CloseModal} backdrop="static" size="xl">
       <CForm onSubmit={handleSubmit}>
         <CModalHeader closeButton className="bg-primary text-white">
           <CModalTitle>{modalTitle}</CModalTitle>
@@ -308,7 +486,7 @@ export const ModalProductos = () => {
             </CCol>
           </CRow>
           <CRow>
-            <CCol xs="4">
+            <CCol md="4">
               <CFormInput
                 type="text"
                 label="Código"
@@ -319,7 +497,7 @@ export const ModalProductos = () => {
                 invalid={errCode}
               />
             </CCol>
-            <CCol xs="8">
+            <CCol md="8">
               <CFormInput
                 type="text"
                 label="Nombre"
@@ -330,9 +508,26 @@ export const ModalProductos = () => {
                 invalid={errName}
               />
             </CCol>
-          </CRow>
-          <CRow>
-            <CCol xs="4">
+            <CCol md="12">
+              <CFormTextarea
+                value={description === null ? '' : description}
+                label="Descripción"
+                onChange={handleInputChange}
+                name="description"
+                rows="1"
+              />
+            </CCol>
+            {/* <CCol md="4" className="mt-5">
+              <CFormSwitch
+                label="Habilitar lista de precios"
+                name="price_type"
+                onChange={handleInputChange}
+                size="lg"
+                checked={price_type == 1}
+                disabled
+              />
+            </CCol> */}
+            <CCol md="4">
               <CFormLabel htmlFor="brand">Marca</CFormLabel>
               <Select
                 value={marcaProducto}
@@ -343,7 +538,7 @@ export const ModalProductos = () => {
               />
               <span className="text-danger small">{errBrand}</span>
             </CCol>
-            <CCol xs="8">
+            <CCol md="8">
               <CFormLabel htmlFor="categories">Categorias</CFormLabel>
               <Select
                 value={categoriasProducto}
@@ -355,7 +550,8 @@ export const ModalProductos = () => {
               />
               <span className="text-danger small">{errCategories}</span>
             </CCol>
-            <CCol xs="4">
+            <CCol md="12" style={{ borderTop: '1px dashed #cecece' }} className="my-2"></CCol>
+            <CCol md="4">
               <CFormInput
                 type="number"
                 label="Costo"
@@ -366,111 +562,158 @@ export const ModalProductos = () => {
                 invalid={errCost}
               />
             </CCol>
-            <CCol xs="4">
+            <CCol md="4">
               <CFormInput
                 type="number"
-                label="Precio"
-                name="price"
-                value={price || 0}
+                label="Costo USD"
+                name="cost_usd"
+                value={cost_usd || 0}
                 onChange={handleInputChange}
                 feedbackInvalid="este campo debe ser un número"
-                invalid={errPrice}
+                invalid={errCostUsd}
               />
             </CCol>
-            <CCol xs="4">
-              <CFormSwitch
-                label="Habilitar lista de precios"
-                name="price_type"
-                onChange={handleInputChange}
-                className="mt-4"
-                size="lg"
-                checked={price_type == 1}
-              />
+            <CCol md="4" className="pt-4">
+              <CAlert color="primary" className="m-0 p-2">
+                Tipo de Cambio: <b>{tipoCambio}</b>{' '}
+                <CAlertLink href="#/parametros">
+                  <CIcon icon={cilPen} />
+                </CAlertLink>
+              </CAlert>
             </CCol>
-            <CCol xs="4">
-              <CFormInput
-                type="number"
-                label="Precio con descuento"
-                name="price_discount"
-                value={price_discount || 0}
-                onChange={handleInputChange}
-                feedbackInvalid="este campo debe ser un número"
-                invalid={errPriceDiscount}
-              />
+            <CCol md="4">
+              <CFormLabel htmlFor="price" className="col-sm-12 col-form-label">
+                Precio
+              </CFormLabel>
+              <CInputGroup className="mb-3">
+                <CFormInput
+                  type="number"
+                  name="price"
+                  value={price || 0}
+                  onChange={handleInputChange}
+                  feedbackInvalid="este campo debe ser un número"
+                  invalid={errPrice}
+                />
+                <CInputGroupText>Bs</CInputGroupText>
+                <CFormInput
+                  type="number"
+                  name="price_percent"
+                  value={price_percent || 0}
+                  onChange={handleInputChange}
+                  feedbackInvalid="este campo debe ser menor o igual a 1"
+                  invalid={errPricePercent}
+                />
+                <CInputGroupText>%</CInputGroupText>
+              </CInputGroup>
             </CCol>
-            <CCol xs="4">
-              <CFormInput
-                type="number"
-                label="Precio por mayor"
-                name="price_wholesome"
-                value={price_wholesome || 0}
-                onChange={handleInputChange}
-                feedbackInvalid="este campo debe ser un número"
-                invalid={errPriceWholesome}
-              />
+            <CCol md="4">
+              <CFormLabel htmlFor="price_discount" className="col-sm-12 col-form-label">
+                Precio con descuento
+              </CFormLabel>
+              <CInputGroup className="mb-3">
+                <CFormInput
+                  type="number"
+                  name="price_discount"
+                  value={price_discount || 0}
+                  onChange={handleInputChange}
+                  feedbackInvalid="este campo debe ser un número"
+                  invalid={errPriceDiscount}
+                />
+                <CInputGroupText>Bs</CInputGroupText>
+                <CFormInput
+                  type="number"
+                  name="discount_percent"
+                  value={discount_percent || 0}
+                  onChange={handleInputChange}
+                  feedbackInvalid="este campo debe ser menor o igual a 1"
+                  invalid={errDiscountPercent}
+                />
+                <CInputGroupText>%</CInputGroupText>
+              </CInputGroup>
             </CCol>
-            <CCol xs="4">
-              <CFormTextarea
-                value={description === null ? '' : description}
-                label="Descripción"
-                onChange={handleInputChange}
-                name="description"
-                rows="3"
-              />
+            <CCol md="4">
+              <CFormLabel htmlFor="price_wholesome" className="col-sm-12 col-form-label">
+                Precio por mayor
+              </CFormLabel>
+              <CInputGroup className="mb-3">
+                <CFormInput
+                  type="number"
+                  name="price_wholesome"
+                  value={price_wholesome || 0}
+                  onChange={handleInputChange}
+                  feedbackInvalid="este campo debe ser un número"
+                  invalid={errPriceWholesome}
+                />
+                <CInputGroupText>Bs</CInputGroupText>
+                <CFormInput
+                  type="number"
+                  name="wholesome_percent"
+                  value={wholesome_percent || 0}
+                  onChange={handleInputChange}
+                  feedbackInvalid="este campo debe ser menor o igual a 1"
+                  invalid={errWholesomePercent}
+                />
+                <CInputGroupText>%</CInputGroupText>
+              </CInputGroup>
             </CCol>
+            <CCol md="12" style={{ borderTop: '1px dashed #cecece' }} className="my-2"></CCol>
           </CRow>
           <CRow>
-            <CCol xs="6">
-              <CFormInput
-                name="image"
-                label="Imágenes"
-                value={imagen}
-                type="file"
-                onChange={handleInputImgChange}
-                accept="image/x-png,image/gif,image/jpeg"
-              />
-              <span className="text-danger small">{errImg}</span>
-              <br />
-              <div>
-                <CRow>
-                  {imagenes.map((img) => (
-                    <CCol key={img.id} xs="4">
-                      <CButton
-                        color="danger"
-                        variant="outline"
-                        shape="square"
-                        size="sm"
-                        onClick={() => {
-                          deleteImg(img.id)
-                        }}
-                      >
-                        <CIcon icon={cilX} />
-                      </CButton>
-                      <CCard>
-                        <CCardImage width="100%" src={`${DISK}/${img.name}`} alt="img" />
-                      </CCard>
-                    </CCol>
-                  ))}
-                  {tempImagenes.map((img, i) => (
-                    <CCol key={i} xs="4">
-                      <CButton
-                        color="danger"
-                        variant="outline"
-                        shape="square"
-                        size="sm"
-                        onClick={() => {
-                          deleteTempImg(i)
-                        }}
-                      >
-                        <CIcon icon={cilX} />
-                      </CButton>
-                      <CCard>
-                        <CCardImage width="100%" src={img} alt="img" />
-                      </CCard>
-                    </CCol>
-                  ))}
-                </CRow>
+            <CCol xs="12" md="3">
+              <div className="d-grid gap-2">
+                <label className="btn btn-outline-primary btn-block">
+                  Agregar imágenes <CIcon icon={cilCamera} /> ó <CIcon icon={cilImagePlus} />
+                  <input
+                    name="image"
+                    value={imagen}
+                    type="file"
+                    onChange={handleInputImgChange}
+                    style={{ display: 'none' }}
+                  />
+                </label>
+                <span className="text-danger small">{errImg}</span>
               </div>
+            </CCol>
+            <CCol xs="12" md="9">
+              <CFormLabel>Imágenes del producto</CFormLabel>
+              <CRow>
+                {imagenes.map((img) => (
+                  <CCol key={img.id} xs="3">
+                    <CButton
+                      color="danger"
+                      variant="outline"
+                      shape="square"
+                      size="sm"
+                      onClick={() => {
+                        deleteImg(img.id)
+                      }}
+                    >
+                      <CIcon icon={cilX} />
+                    </CButton>
+                    <CCard>
+                      <CCardImage width="100%" src={`${DISK}/${img.name}`} alt="img" />
+                    </CCard>
+                  </CCol>
+                ))}
+                {tempImagenes.map((img, i) => (
+                  <CCol key={i} xs="3">
+                    <CButton
+                      color="danger"
+                      variant="outline"
+                      shape="square"
+                      size="sm"
+                      onClick={() => {
+                        deleteTempImg(i)
+                      }}
+                    >
+                      <CIcon icon={cilX} />
+                    </CButton>
+                    <CCard>
+                      <CCardImage width="100%" src={img} alt="img" />
+                    </CCard>
+                  </CCol>
+                ))}
+              </CRow>
             </CCol>
           </CRow>
         </CModalBody>

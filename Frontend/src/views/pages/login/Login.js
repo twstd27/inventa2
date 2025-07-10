@@ -30,6 +30,8 @@ const Login = () => {
   const [formValues, handleInputChange] = useForm({
     email: '',
     password: '',
+    // email: 'newlui2.0@gmail.com',
+    // password: '75821442',
   })
 
   useEffect(() => {
@@ -74,6 +76,11 @@ const Login = () => {
               <CCard className="p-4">
                 <CCardBody>
                   <CForm onSubmit={handleLogin}>
+                    <div className="text-center mb-4 d-block d-md-none bg-primary text-white p-3">
+                      <img width="100" src="./logo.png" alt="" />
+                      <h2>InVenta</h2>
+                      <p>Módulo de administración de inventarios y ventas</p>
+                    </div>
                     <h1>Iniciar Sesión</h1>
                     <p className="text-body-secondary">accede a tu cuenta</p>
                     <CInputGroup className="mb-3">
@@ -140,7 +147,10 @@ const Login = () => {
                   </CForm>
                 </CCardBody>
               </CCard>
-              <CCard className="text-white bg-primary py-5" style={{ width: '44%' }}>
+              <CCard
+                className="text-white bg-primary py-5 d-md-block d-none"
+                style={{ width: '44%' }}
+              >
                 <CCardBody className="text-center">
                   <div>
                     <h2>InVenta</h2>

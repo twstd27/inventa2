@@ -122,17 +122,27 @@ const ParametrosGenerales = () => {
                 <CCardTitle>Ventas</CCardTitle>
                 <CRow>
                   <CCol style={{ marginLeft: '20px' }}>
-                    <CFormLabel htmlFor={`param_${params[1]?.id}`}>
-                      {params[1]?.description}
-                    </CFormLabel>
-                    <CFormSelect
-                      aria-label={params[1]?.description}
-                      id={`param_${params[1]?.id}`}
-                      name={`param_${params[1]?.id}`}
-                      value={params[1]?.value}
-                      options={preciosCombo}
+                    <CFormInput
+                      type="number"
+                      label={params[3]?.description}
+                      id={`param_${params[3]?.id}`}
+                      name={`param_${params[3]?.id}`}
+                      value={params[3]?.value ?? 0}
                       onChange={handleChange}
                     />
+                    {/*
+                      <CFormLabel htmlFor={`param_${params[1]?.id}`}>
+                        {params[1]?.description}
+                      </CFormLabel>
+                      <CFormSelect
+                        aria-label={params[1]?.description}
+                        id={`param_${params[1]?.id}`}
+                        name={`param_${params[1]?.id}`}
+                        value={params[1]?.value}
+                        options={preciosCombo}
+                        onChange={handleChange}
+                      />
+                    */}
                     <CFormSwitch
                       label={params[0]?.description}
                       className="mt-3"

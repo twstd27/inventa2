@@ -53,8 +53,6 @@ const AppSidebar = () => {
         return item.to && values.some((value) => item.to.includes(value)) ? item : null
       })
       .filter(Boolean) // Eliminar elementos nulos
-
-    console.log('Menú filtrado:', auxMenu)
     setMenu(auxMenu)
   }
 

@@ -1,12 +1,10 @@
-import React from 'react'
-import classNames from 'classnames'
-
 import {
   CAvatar,
   CButton,
   CButtonGroup,
   CCard,
   CCardBody,
+  CCardTitle,
   CCardFooter,
   CCardHeader,
   CCol,
@@ -41,6 +39,7 @@ import {
   cilPeople,
   cilUser,
   cilUserFemale,
+  cilQrCode,
 } from '@coreui/icons'
 
 import avatar1 from 'src/assets/images/avatars/1.jpg'
@@ -53,6 +52,8 @@ import avatar6 from 'src/assets/images/avatars/6.jpg'
 import WidgetsBrand from '../widgets/WidgetsBrand'
 import WidgetsDropdown from '../widgets/WidgetsDropdown'
 import MainChart from './MainChart'
+
+import { useNavigate } from 'react-router-dom'
 
 const Dashboard = () => {
   const progressExample = [
@@ -176,9 +177,25 @@ const Dashboard = () => {
     },
   ]
 
+  const navigate = useNavigate()
+
+  const handleGoToQR = () => {
+    navigate('/qr-scanner') // Cambia "/scanner" por la ruta que corresponda a tu componente escáner
+  }
+
   return (
     <>
-      Proximamente...
+      <CCard className="mb-4">
+        <CCardBody>
+          <CCardTitle>Escanear Productos</CCardTitle>
+        </CCardBody>
+        <CCardFooter className="text-center">
+          <CButton variant="outline" onClick={handleGoToQR}>
+            <CIcon icon={cilQrCode} size="9xl" />
+          </CButton>
+        </CCardFooter>
+      </CCard>
+      {/*Proximamente...*/}
       {/* <WidgetsDropdown className="mb-4" />
       <CCard className="mb-4">
         <CCardBody>

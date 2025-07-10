@@ -49,6 +49,7 @@ import { getCotizaciones, registerQuotation, setCotizacion } from '../../actions
 import { CardProducto } from '../productos/CardProducto'
 import { ModalCotizaciones } from './ModalCotizaciones'
 import { ModalDetalleProducto } from '../productos/ModalDetalleProducto'
+import { ModalEtiqueta } from '../productos/ModalEtiqueta'
 import { DialogCotizaciones } from './DialogCotizaciones'
 import { SelectStyles } from '../../helpers/global'
 import {
@@ -553,7 +554,7 @@ const POS = () => {
               <CRow>
                 <CCol lg="6" xl="8">
                   <CRow>
-                    <CCol xs="5">
+                    <CCol xs="6">
                       <Select
                         value={sucursalVenta}
                         onChange={handleSelectChangeBranch}
@@ -566,7 +567,7 @@ const POS = () => {
                       />
                       <span className="text-danger small">{errBranch}</span>
                     </CCol>
-                    <CCol xs="5">
+                    <CCol xs="6">
                       <CInputGroup>
                         <CInputGroupText>
                           <Search size={16} />
@@ -834,6 +835,7 @@ const POS = () => {
         </CCol>
         <Dialog />
         <ModalDetalleProducto action={handleClickAdd} />
+        <ModalEtiqueta />
         <DialogVentas f1={RealizarVenta} />
         {/* <DialogCotizaciones f1={RealizarCotizacion} /> */}
         <ModalVentas />

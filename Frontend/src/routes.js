@@ -14,6 +14,8 @@ const Usuarios = React.lazy(() => import('./views/usuarios/AdministrarUsuarios')
 const Roles = React.lazy(() => import('./views/roles/AdministrarRoles'))
 const ParametrosGenerales = React.lazy(() => import('./views/administrar/ParametrosGenerales'))
 const ListaPrecios = React.lazy(() => import('./views/precios/AdministrarPrecios'))
+const QRScanner = React.lazy(() => import('./views/productos/qr'))
+const Etiquetas = React.lazy(() => import('./views/productos/AdministrarEtiquetas'))
 
 const routes = [
   { path: '/', exact: true, name: 'Home', element: Dashboard },
@@ -31,7 +33,9 @@ const routes = [
   { path: '/cotizaciones', name: 'Cotizaciones', element: Cotizaciones },
   { path: '/reportes', name: 'Reportes de Ventas', element: Reportes },
   { path: '/parametros', name: 'Parametros Generales', element: ParametrosGenerales },
-  { path: '/listaprecios', name: 'Lista de Precios', element: ListaPrecios },
+  // { path: '/listaprecios', name: 'Lista de Precios', element: ListaPrecios },
+  { path: '/qr-scanner', name: 'Escaner QR', element: QRScanner },
+  { path: '/etiquetas', name: 'Etiquetas', element: Etiquetas },
 ]
 
 export default routes

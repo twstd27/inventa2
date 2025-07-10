@@ -17,7 +17,11 @@ class BranchController extends Controller
      */
     public function index()
     {
-        $branches = Branch::withTrashed()->orderByDesc('id')->get();
+        // Ordenar: primero los que no están eliminados (deleted_at == null), luego los eliminados, y dentro de cada grupo por id descendente
+        $branches = Branch::withTrashed()
+            ->orderByRaw('CASE WHEN deleted_at IS NULL THEN 0 ELSE 1 END')
+            ->orderByDesc('id')
+            ->get();
 
         return response()->json(['data' => $branches],200);
     }

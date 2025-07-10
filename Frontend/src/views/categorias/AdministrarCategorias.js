@@ -43,7 +43,7 @@ const AdministrarCategorias = () => {
               </CButton>
             </div>
           </CCardHeader>
-          <CCardBody>
+          <CCardBody className="table-responsive">
             <TablaCategorias />
           </CCardBody>
         </CCard>

@@ -56,6 +56,7 @@ Route::post('products/{id}/uploadimg',[ProductController::class, 'StoreImg']);
 Route::post('products/{id}/deleteimg',[ProductController::class, 'RemoveImg']);
 Route::post('products/{id}/restore',[ProductController::class, 'Restore']);
 Route::get('products/lista',[ProductController::class, 'Lista']);
+Route::get('products/etiquetas',[ProductController::class, 'Etiquetas']);
 //Route::get('products/{id}/mostrar',[ProductController::class, 'MostrarProducto']);
 //Route::get('products/{id}/categories/data', 'ProductCategoryController@ProductCategories');
 //Route::put('products/{id}/categories/{id_category}/update', 'ProductCategoryController@BorrarActualizarCategoria');

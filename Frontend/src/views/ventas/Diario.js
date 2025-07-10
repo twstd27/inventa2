@@ -118,23 +118,29 @@ const DiarioVentas = () => {
     getCoreRowModel: getCoreRowModel(),
   })
 
+  // Un solo handler para todos los cambios
   const handleStateChange = ({ target }) => {
-    setState({
+    const newState = {
       ...state,
       [target.name]: target.value,
-    })
-    if (target.name === 'start_date' || target.name === 'end_date') {
-      buscarRegistros(state.start_date, state.end_date, sucursalVenta?.value || '')
     }
+    setState(newState)
   }
 
   const handleSelectChangeBranch = (values) => {
-    setState({
+    const newState = {
       ...state,
       sucursalVenta: values,
-    })
-    buscarRegistros(start_date, end_date, values.value)
+    }
+    setState(newState)
   }
+
+  // Buscar cada vez que cambie alguno de los filtros
+  useEffect(() => {
+    if (start_date && end_date && sucursalVenta && sucursalVenta.value) {
+      buscarRegistros(start_date, end_date, sucursalVenta.value)
+    }
+  }, [start_date, end_date, sucursalVenta])
 
   const buscarRegistros = (startDate, endDate, sucursal) => {
     if (startDate !== '' && endDate !== '') {
@@ -179,7 +185,7 @@ const DiarioVentas = () => {
         <CCard>
           <CCardBody>
             <CRow>
-              <CCol xs="3">
+              <CCol md="3">
                 <CFormLabel htmlFor="branch">Sucursal</CFormLabel>
                 <Select
                   value={sucursalVenta}
@@ -188,7 +194,7 @@ const DiarioVentas = () => {
                   name="branch"
                 />
               </CCol>
-              <CCol xs="3">
+              <CCol md="3">
                 <CFormInput
                   type="date"
                   label="Fecha Inicio"
@@ -197,7 +203,7 @@ const DiarioVentas = () => {
                   onChange={handleStateChange}
                 />
               </CCol>
-              <CCol xs="3">
+              <CCol md="3">
                 <CFormInput
                   type="date"
                   label="Fecha Fin"
@@ -206,7 +212,7 @@ const DiarioVentas = () => {
                   onChange={handleStateChange}
                 />
               </CCol>
-              <CCol xs="3" className="mt-4">
+              <CCol md="3" className="mt-4">
                 <CButton color="primary" disabled={loading} onClick={handlePrint}>
                   {loading ? (
                     <>
@@ -221,7 +227,7 @@ const DiarioVentas = () => {
                 </CButton>
               </CCol>
               <CCol xs="12" className="separator" />
-              <CCol xs="12">
+              <CCol xs="12" className="table-responsive">
                 <div ref={componentRef} className="table-print">
                   <div>
                     <h2>{sucursalVenta?.label}</h2>

@@ -59,7 +59,7 @@ const AdministrarProductos = () => {
               </CButton>
             </div>
           </CCardHeader>
-          <CCardBody className="d-flex justify-content-between align-items-center">
+          <CCardBody className="d-flex justify-content-between align-items-center table-responsive">
             <TablaProductos />
           </CCardBody>
         </CCard>

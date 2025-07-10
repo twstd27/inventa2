@@ -43,6 +43,49 @@ const TablaSucursales = () => {
   const columns = useMemo(
     () => [
       {
+        accessorKey: 'acciones',
+        header: 'ACCIONES',
+        cell: ({ row }) => (
+          <div
+            className="d-flex align-items-center flex-row flex-sm-row flex-column flex-md-row"
+            style={{ gap: '2px' }}
+          >
+            {row.original.deleted_at === null ? (
+              <>
+                <CButton
+                  size="sm"
+                  color="primary"
+                  variant="outline"
+                  shape="rounded-0"
+                  onClick={() => openModal(row.original)}
+                >
+                  <CIcon icon={cilPencil} />
+                </CButton>{' '}
+                <CButton
+                  size="sm"
+                  color="danger"
+                  variant="outline"
+                  shape="rounded-0"
+                  onClick={() => toggleAlert('inactivo', row.original)}
+                >
+                  <CIcon icon={cilX} />
+                </CButton>
+              </>
+            ) : (
+              <CButton
+                size="sm"
+                color="success"
+                variant="outline"
+                shape="rounded-0"
+                onClick={() => toggleAlert('activo', row.original)}
+              >
+                <CIcon icon={cilCheckAlt} />
+              </CButton>
+            )}
+          </div>
+        ),
+      },
+      {
         accessorKey: 'name',
         header: 'NOMBRE',
       },
@@ -62,43 +105,6 @@ const TablaSucursales = () => {
           <CBadge color={colorBadge(row.original.deleted_at === null ? 1 : 0)}>
             {row.original.deleted_at === null ? 'activo' : 'inactivo'}
           </CBadge>
-        ),
-      },
-      {
-        accessorKey: 'acciones',
-        header: 'ACCIONES',
-        cell: ({ row }) => (
-          <div className="py-2">
-            {row.original.deleted_at === null ? (
-              <>
-                <CButton
-                  color="primary"
-                  variant="outline"
-                  shape="rounded-0"
-                  onClick={() => openModal(row.original)}
-                >
-                  <CIcon icon={cilPencil} />
-                </CButton>{' '}
-                <CButton
-                  color="danger"
-                  variant="outline"
-                  shape="rounded-0"
-                  onClick={() => toggleAlert('inactivo', row.original)}
-                >
-                  <CIcon icon={cilX} />
-                </CButton>
-              </>
-            ) : (
-              <CButton
-                color="success"
-                variant="outline"
-                shape="rounded-0"
-                onClick={() => toggleAlert('activo', row.original)}
-              >
-                <CIcon icon={cilCheckAlt} />
-              </CButton>
-            )}
-          </div>
         ),
       },
     ],

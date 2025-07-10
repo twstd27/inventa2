@@ -73,6 +73,55 @@ const TablaRoles = () => {
   const columns = useMemo(
     () => [
       {
+        accessorKey: 'acciones',
+        header: 'ACCIONES',
+        cell: ({ row }) => (
+          <div
+            className="d-flex align-items-center flex-row flex-sm-row flex-column flex-md-row"
+            style={{ gap: '2px' }}
+          >
+            {row.original.deleted_at === null ? (
+              <>
+                <CButton
+                  size="sm"
+                  color="primary"
+                  variant="outline"
+                  shape="square"
+                  onClick={() => {
+                    openModal(row.original)
+                  }}
+                >
+                  <CIcon icon={cilPencil} />
+                </CButton>{' '}
+                <CButton
+                  size="sm"
+                  color="danger"
+                  variant="outline"
+                  shape="square"
+                  onClick={() => {
+                    toggleAlert('inactivo', row.original)
+                  }}
+                >
+                  <CIcon icon={cilX} />
+                </CButton>
+              </>
+            ) : (
+              <CButton
+                size="sm"
+                color="success"
+                variant="outline"
+                shape="square"
+                onClick={() => {
+                  toggleAlert('activo', row.original)
+                }}
+              >
+                <CIcon icon={cilCheckAlt} />
+              </CButton>
+            )}
+          </div>
+        ),
+      },
+      {
         accessorKey: 'name',
         header: 'NOMBRE',
         filterFn: 'includesString',
@@ -100,49 +149,6 @@ const TablaRoles = () => {
           </CBadge>
         ),
         filterFn: 'equals',
-      },
-      {
-        accessorKey: 'acciones',
-        header: 'ACCIONES',
-        cell: ({ row }) => (
-          <span className="py-2">
-            {row.original.deleted_at === null ? (
-              <>
-                <CButton
-                  color="primary"
-                  variant="outline"
-                  shape="square"
-                  onClick={() => {
-                    openModal(row.original)
-                  }}
-                >
-                  <CIcon icon={cilPencil} />
-                </CButton>{' '}
-                <CButton
-                  color="danger"
-                  variant="outline"
-                  shape="square"
-                  onClick={() => {
-                    toggleAlert('inactivo', row.original)
-                  }}
-                >
-                  <CIcon icon={cilX} />
-                </CButton>
-              </>
-            ) : (
-              <CButton
-                color="success"
-                variant="outline"
-                shape="square"
-                onClick={() => {
-                  toggleAlert('activo', row.original)
-                }}
-              >
-                <CIcon icon={cilCheckAlt} />
-              </CButton>
-            )}
-          </span>
-        ),
       },
     ],
     [dispatch],
