@@ -35,6 +35,11 @@ const _nav = [
         name: 'Reportes',
         to: '/reportes',
       },
+      {
+        component: CNavItem,
+        name: 'Etiquetas',
+        to: '/etiquetas',
+      },
     ],
   },
   {
@@ -57,15 +62,6 @@ const _nav = [
         component: CNavItem,
         name: 'Marcas',
         to: '/marcas',
-      },
-      {
-        component: CNavItem,
-        name: 'Etiquetas',
-        to: '/etiquetas',
-        badge: {
-          color: 'success',
-          text: 'Nuevo',
-        },
       },
     ],
   },

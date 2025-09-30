@@ -138,6 +138,7 @@ export const uiReducer = (state = initialState, action) => {
         dialogButtonOk: '',
         dialogButtonCancel: '',
         dialogAction: '',
+        venta: {},
       }
     case types.ui.reset:
       return {
@@ -147,6 +148,17 @@ export const uiReducer = (state = initialState, action) => {
         modalTitle: '',
         modalButton: '',
         modalAction: '',
+      }
+    case types.ui.openVentasDialog:
+      return {
+        ...state,
+        dialogVentasOpen: true,
+        dialogTitle: action.payload.title,
+        dialogBody: action.payload.body,
+        dialogButtonOk: action.payload.buttonOk,
+        dialogButtonCancel: action.payload.buttonCancel,
+        dialogAction: action.payload.action,
+        venta: action.payload.venta,
       }
     default:
       return state

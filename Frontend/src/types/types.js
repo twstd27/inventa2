@@ -2,9 +2,10 @@ import { setProductosEtiqueta } from '../actions/productosAction'
 
 export const API =
   // 'http://pruebas.sblimportadora.com/public'
-  // 'http://192.168.0.134:8000'
-  // 'http://apicv.sblimportadora.com/public'
-  'http://apibigtool.sblimportadora.com/public'
+  'http://localhost:8000'
+// 'http://192.168.0.134:8000'
+// 'http://apicv.sblimportadora.com/public'
+// 'http://apibigtool.sblimportadora.com/public'
 export const DISK = 'https://inventa-sblimportadora.s3.sa-east-1.amazonaws.com/images'
 // export const DISK = 'http://localhost:8000/images'
 

@@ -28,6 +28,11 @@ const initialState = {
       modulo: 'productos',
     },
     {
+      value: 'etiquetas',
+      label: 'Etiquetas',
+      modulo: 'Ventas',
+    },
+    {
       value: 'marcas',
       label: 'Marcas',
       modulo: 'productos',

@@ -434,6 +434,19 @@ const POS = () => {
     })
 
     addToast(showToast('success', 'Venta registrada'))
+    setState({
+      ...state,
+      lineas: [],
+      doc_date: format(Date.now(), 'yyyy-MM-dd'),
+      comments: '',
+      docTotal: 0,
+      errDocDate: false,
+      errBranch: '',
+      invoice: false,
+      invoice_number: '',
+      customer: '',
+      customer_number: '',
+    })
   }
 
   // const Cotizar = () => {
