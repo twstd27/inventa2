@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   CCard,
   CCardBody,
@@ -8,11 +8,7 @@ import {
   CTab,
   CTabList,
   CTabPanel,
-  CNav,
-  CNavItem,
-  CNavLink,
   CTabContent,
-  CTabPane,
 } from '@coreui/react'
 import { useDispatch } from 'react-redux'
 import TablaVentas from './TablaVentas'

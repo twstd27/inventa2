@@ -40,6 +40,9 @@ const DiarioVentas = () => {
   })
   const { start_date, end_date, sucursalVenta, total, profit, tax } = state
 
+  const { usuario } = useSelector((state) => state.auth)
+  console.log(usuario)
+
   useEffect(() => {
     setState({
       ...state,
@@ -50,37 +53,82 @@ const DiarioVentas = () => {
     totalesRegistros()
   }, [diario])
 
-  const columns = useMemo(
-    () => [
-      {
-        accessorKey: 'id',
-        header: 'VENTA',
-      },
-      {
-        accessorKey: 'doc_date',
-        header: 'FECHA',
-      },
+  // const columns = useMemo(
+  //   () => [
+  //     {
+  //       accessorKey: 'id',
+  //       header: 'VENTA',
+  //     },
+  //     {
+  //       accessorKey: 'doc_date',
+  //       header: 'FECHA',
+  //     },
+  //     {
+  //       accessorKey: 'invoice',
+  //       header: 'FACTURA',
+  //       cell: ({ row }) => <span>{row.original.invoice === 1 ? 'si' : 'no'}</span>,
+  //     },
+  //     {
+  //       accessorKey: 'code',
+  //       header: 'CÓDIGO',
+  //     },
+  //     {
+  //       accessorKey: 'name',
+  //       header: 'NOMBRE',
+  //     },
+  //     {
+  //       accessorKey: 'quantity',
+  //       header: 'CANTIDAD',
+  //     },
+  //     {
+  //       accessorKey: 'price',
+  //       header: 'PRECIO',
+  //     },
+  //     {
+  //       accessorKey: 'total',
+  //       header: 'SUBTOTAL',
+  //       cell: ({ row }) => (
+  //         <span className="text-right">{(row.original.total * 1).toFixed(2)}</span>
+  //       ),
+  //     },
+  //     {
+  //       accessorKey: 'cost',
+  //       header: 'COSTO/U',
+  //     },
+  //     {
+  //       accessorKey: 'cost_total',
+  //       header: 'SUBTOTAL COSTO',
+  //       cell: ({ row }) => (
+  //         <span className="text-right">
+  //           {(row.original.quantity * 1 * (row.original.cost * 1)).toFixed(2)}
+  //         </span>
+  //       ),
+  //     },
+  //     {
+  //       accessorKey: 'profit',
+  //       header: 'GANANCIA',
+  //       cell: ({ row }) => (
+  //         <span className="text-right">{(row.original.profit * 1).toFixed(2)}</span>
+  //       ),
+  //     },
+  //   ],
+  //   [dispatch],
+  // )
+
+  const columns = useMemo(() => {
+    // columnas base visibles para todos
+    const baseColumns = [
+      { accessorKey: 'id', header: 'VENTA' },
+      { accessorKey: 'doc_date', header: 'FECHA' },
       {
         accessorKey: 'invoice',
         header: 'FACTURA',
         cell: ({ row }) => <span>{row.original.invoice === 1 ? 'si' : 'no'}</span>,
       },
-      {
-        accessorKey: 'code',
-        header: 'CÓDIGO',
-      },
-      {
-        accessorKey: 'name',
-        header: 'NOMBRE',
-      },
-      {
-        accessorKey: 'quantity',
-        header: 'CANTIDAD',
-      },
-      {
-        accessorKey: 'price',
-        header: 'PRECIO',
-      },
+      { accessorKey: 'code', header: 'CÓDIGO' },
+      { accessorKey: 'name', header: 'NOMBRE' },
+      { accessorKey: 'quantity', header: 'CANTIDAD' },
+      { accessorKey: 'price', header: 'PRECIO' },
       {
         accessorKey: 'total',
         header: 'SUBTOTAL',
@@ -88,10 +136,11 @@ const DiarioVentas = () => {
           <span className="text-right">{(row.original.total * 1).toFixed(2)}</span>
         ),
       },
-      {
-        accessorKey: 'cost',
-        header: 'COSTO/U',
-      },
+    ]
+
+    // columnas restringidas solo para role_id === 1
+    const adminColumns = [
+      { accessorKey: 'cost', header: 'COSTO/U' },
       {
         accessorKey: 'cost_total',
         header: 'SUBTOTAL COSTO',
@@ -108,9 +157,11 @@ const DiarioVentas = () => {
           <span className="text-right">{(row.original.profit * 1).toFixed(2)}</span>
         ),
       },
-    ],
-    [dispatch],
-  )
+    ]
+
+    // si el usuario tiene role_id = 1, agregamos esas columnas
+    return usuario?.role_id === 1 ? [...baseColumns, ...adminColumns] : baseColumns
+  }, [dispatch, usuario])
 
   const table = useReactTable({
     data: diario,
@@ -273,9 +324,11 @@ const DiarioVentas = () => {
                       <span>
                         <b>Impuesto</b>
                       </span>
-                      <span>
-                        <b>Ganancia</b>
-                      </span>
+                      {usuario?.role_id === 1 && (
+                        <span>
+                          <b>Ganancia</b>
+                        </span>
+                      )}
                     </CCol>
                     <CCol xs={2} className="d-flex flex-column justify-content-end text-right">
                       <span>
@@ -284,9 +337,11 @@ const DiarioVentas = () => {
                       <span>
                         <b>{tax}</b>
                       </span>
-                      <span>
-                        <b>{profit}</b>
-                      </span>
+                      {usuario?.role_id === 1 && (
+                        <span>
+                          <b>{profit}</b>
+                        </span>
+                      )}
                     </CCol>
                   </CRow>
                 </div>
