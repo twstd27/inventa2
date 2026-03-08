@@ -423,8 +423,8 @@ class ProductController extends Controller
     public function StoreImg($id, Request $request)
     {
         $product = Product::findOrFail($id);
-        $path = $request->file('image')->store('images', 's3');
-        Storage::disk('s3')->setVisibility($path,'public');
+        $path = $request->file('image')->store('images', 'public');
+        Storage::disk('public')->setVisibility($path, 'public');
 
         $imagen = Image::create(['name' => basename($path)]);
 
@@ -447,7 +447,7 @@ class ProductController extends Controller
         $imagen = Image::findOrFail($request->id);
         $product = Product::findOrFail($id);
 
-        $borrar = Storage::disk('s3')->delete('images/'.$imagen->name);
+        $borrar = Storage::disk('public')->delete('images/'.$imagen->name);
 
         //$borrar = File::delete("storage/images/".$imagen->name);
 

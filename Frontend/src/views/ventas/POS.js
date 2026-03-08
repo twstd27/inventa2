@@ -149,15 +149,20 @@ const POS = () => {
   }
 
   const handleLineasChangeCantidad = ({ target }) => {
+    const isQuantityInvalid = params[2]?.value === '0'
+
     const auxLineas = [...lineas]
     const position = target.name.substring(1)
 
     auxLineas[position].quantity = target.value
-    if (target.value < 0) {
-      auxLineas[position].errorQuantity = true
-      return
-    } else {
-      auxLineas[position].errorQuantity = target.value * 1 > target.max * 1 || target.value == 0
+
+    if (isQuantityInvalid) {
+      if (target.value < 0) {
+        auxLineas[position].errorQuantity = true
+        return
+      } else {
+        auxLineas[position].errorQuantity = target.value * 1 > target.max * 1 || target.value == 0
+      }
     }
 
     let total = auxLineas[position].quantity * auxLineas[position].price
@@ -736,7 +741,9 @@ const POS = () => {
                                           type="number"
                                           name={`q${x}`}
                                           min={0}
-                                          max={item.maxQuantity}
+                                          max={
+                                            params[2]?.value === '0' ? item.maxQuantity : undefined
+                                          }
                                           value={item.quantity}
                                           invalid={item.errorQuantity}
                                           valid={!item.errorQuantity}
