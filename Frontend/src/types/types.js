@@ -6,6 +6,7 @@ export const API =
   // 'http://192.168.0.134:8000'
   // 'http://apicv.sblimportadora.com/public'
   'http://apibigtool.sblimportadora.com/public'
+// export const DISK = 'http://localhost:8000/storage/images'
 export const DISK = 'https://apibigtool.sblimportadora.com/public/storage/images'
 
 // bigtool: L0mVZB3R[~
@@ -130,5 +131,12 @@ export const types = {
   params: {
     setParams: '[Params] Obtener Parametros',
     setError: '[Precios] Set Error',
+  },
+  tipoDeCambio: {
+    setTiposDeCambio: '[TipoDeCambio] Obtener Tipos de Cambio',
+    setTiposDeCambioCombo: '[TipoDeCambio] Obtener Tipos de Cambio Combo',
+    setTipoDeCambio: '[TipoDeCambio] Obtener Tipo de Cambio',
+    setError: '[TipoDeCambio] Set Error',
+    resetModal: '[TipoDeCambio] Reset Modal',
   },
 }

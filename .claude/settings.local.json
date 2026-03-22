@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan:*)",
+      "Bash(cd \"D:\\\\Proyectos\\\\inventa2\\\\inventa2\\\\Backend\" && php -l app/Http/Controllers/ProductController.php 2>&1)",
+      "Bash(cd \"D:\\\\Proyectos\\\\inventa2\\\\inventa2\\\\Backend\" && php -l app/Http/Controllers/ExchangeRateController.php && php -l app/Models/ExchangeRate.php && php -l app/Models/Product.php 2>&1)",
+      "Bash(cd \"D:\\\\Proyectos\\\\inventa2\\\\inventa2\\\\Backend\" && php -l app/Http/Controllers/ExchangeRateController.php && php artisan route:list --path=exchangerates 2>&1)",
+      "Bash(cd \"D:\\\\Proyectos\\\\inventa2\\\\inventa2\\\\Backend\" && php -l app/Http/Controllers/ExchangeRateController.php && php -l app/Http/Controllers/ProductController.php 2>&1)"
+    ]
+  }
+}

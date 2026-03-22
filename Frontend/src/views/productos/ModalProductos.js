@@ -26,6 +26,7 @@ import { uiCloseModal } from '../../actions/uiAction'
 import { DISK } from '../../types/types'
 import { modifyProduct, registerProduct } from '../../actions/productosAction'
 import { getParams } from '../../actions/paramsAction'
+import { getTiposDeCambio } from '../../actions/tipoDeCambioAction'
 import CIcon from '@coreui/icons-react'
 import { cilX, cilPen, cilImagePlus, cilCamera } from '@coreui/icons'
 import { SelectStyles } from '../../helpers/global'
@@ -44,6 +45,7 @@ export const ModalProductos = () => {
 
   const { marcasCombo } = useSelector((state) => state.marcas)
   const { categoriasCombo } = useSelector((state) => state.categorias)
+  const { tiposDeCambioCombo } = useSelector((state) => state.tipoDeCambio)
   const { producto, error: errorForm } = useSelector((state) => state.productos)
   const [formValues, setFormValues] = useState(producto)
   const [formLoading, setFormLoading] = useState(false)
@@ -54,6 +56,7 @@ export const ModalProductos = () => {
   const [tempImagenes, setTempImagenes] = useState([])
   const [tempImagenesData, setTempImagenesData] = useState([])
   const [params, setParams] = useState([])
+  const [tipoDeCambioSeleccionado, setTipoDeCambioSeleccionado] = useState(null)
   const [state, setState] = useState({
     errName: false,
     errCode: false,
@@ -70,10 +73,32 @@ export const ModalProductos = () => {
     errBrand: '',
   })
 
+  const getGlobalExchangeRateId = (p) => parseInt(p.find((x) => x.name === 'TipoCambio')?.value) || null
+  const getGlobalOption = (combo, globalId) =>
+    combo.find((r) => r.value_id === globalId) || null
+
   useEffect(() => {
     if (producto) {
       setFormLoading(true)
-      setFormValues(producto)
+      const globalId = getGlobalExchangeRateId(params)
+      const globalOption = getGlobalOption(tiposDeCambioCombo, globalId)
+      const selectedRate = producto.exchange_rate_id
+        ? tiposDeCambioCombo.find((r) => r.value_id === producto.exchange_rate_id) || globalOption
+        : globalOption
+      const rate = selectedRate ? parseFloat(selectedRate.value) : 6.96
+      const cost_usd = parseFloat(producto.cost_usd) || 0
+      const cost = cost_usd ? (rate * cost_usd).toFixed(2) : parseFloat(producto.cost) || 0
+      const pricePercent = parseFloat(producto.price_percent) || 0
+      const wholesomePercent = parseFloat(producto.wholesome_percent) || 0
+      const discountPercent = parseFloat(producto.discount_percent) || 0
+      setTipoDeCambioSeleccionado(selectedRate)
+      setFormValues({
+        ...producto,
+        cost,
+        price: (cost * (1 + pricePercent)).toFixed(2),
+        price_wholesome: (cost * (1 + wholesomePercent)).toFixed(2),
+        price_discount: (cost * (1 + discountPercent)).toFixed(2),
+      })
       setMarcaProducto({
         value: producto.brand_id,
         label: producto.marca,
@@ -102,6 +127,17 @@ export const ModalProductos = () => {
     }
   }, [producto, setFormValues])
 
+  // Cuando el combo carga tarde (después del producto), sincroniza la selección
+  useEffect(() => {
+    if (!tiposDeCambioCombo.length || !producto) return
+    const globalId = getGlobalExchangeRateId(params)
+    const globalOption = getGlobalOption(tiposDeCambioCombo, globalId)
+    const selectedRate = producto.exchange_rate_id
+      ? tiposDeCambioCombo.find((r) => r.value_id === producto.exchange_rate_id) || globalOption
+      : globalOption
+    setTipoDeCambioSeleccionado(selectedRate)
+  }, [tiposDeCambioCombo])
+
   useEffect(() => {
     const fetchParams = async () => {
       try {
@@ -113,14 +149,18 @@ export const ModalProductos = () => {
     }
 
     fetchParams()
+    dispatch(getTiposDeCambio('combo'))
   }, [dispatch])
 
-  // Recalcula precios cuando cambian params, producto o los campos relevantes
+  // Recalcula precios cuando cambian params, tipo de cambio o los campos relevantes
   useEffect(() => {
     if (!params.length) return
-    let tipoCambio = params[3]?.value ? parseFloat(params[3].value) : 6.96
+    const globalId = getGlobalExchangeRateId(params)
+    const globalOption = getGlobalOption(tiposDeCambioCombo, globalId)
+    const globalRate = parseFloat(globalOption?.value) || 6.96
+    const rate = tipoDeCambioSeleccionado ? parseFloat(tipoDeCambioSeleccionado.value) : globalRate
     let cost_usd = parseFloat(formValues.cost_usd) || 0
-    let cost = cost_usd ? (tipoCambio * cost_usd).toFixed(2) : parseFloat(formValues.cost) || 0
+    let cost = cost_usd ? (rate * cost_usd).toFixed(2) : parseFloat(formValues.cost) || 0
     const pricePercent = parseFloat(formValues.price_percent) || 0
     const wholesomePercent = parseFloat(formValues.wholesome_percent) || 0
     const discountPercent = parseFloat(formValues.discount_percent) || 0
@@ -136,7 +176,7 @@ export const ModalProductos = () => {
     }))
   }, [
     params,
-    producto,
+    tipoDeCambioSeleccionado,
     formValues.cost_usd,
     formValues.price_percent,
     formValues.wholesome_percent,
@@ -193,7 +233,11 @@ export const ModalProductos = () => {
       // Si el campo modificado es cost_usd, recalcula cost en base a tipoCambio
       if (target.name === 'cost_usd') {
         const costUsdNum = parseFloat(value) || 0
-        newFormValues.cost = (tipoCambio * costUsdNum).toFixed(2)
+        const fallbackRate = parseFloat(getGlobalOption(tiposDeCambioCombo, getGlobalExchangeRateId(params))?.value) || 6.96
+        const activeRate = tipoDeCambioSeleccionado
+          ? parseFloat(tipoDeCambioSeleccionado.value)
+          : fallbackRate
+        newFormValues.cost = (activeRate * costUsdNum).toFixed(2)
         // También recalcula los precios dependientes si hay porcentajes
         const pricePercent = parseFloat(newFormValues.price_percent) || 0
         const wholesomePercent = parseFloat(newFormValues.wholesome_percent) || 0
@@ -217,6 +261,15 @@ export const ModalProductos = () => {
     }
 
     setFormValues(newFormValues)
+  }
+
+  const handleSelectChangeTipoDeCambio = (value) => {
+    const isGlobal = !value || (globalOption && value.value_id === globalOption.value_id)
+    setTipoDeCambioSeleccionado(isGlobal ? globalOption : value)
+    setFormValues((prev) => ({
+      ...prev,
+      exchange_rate_id: isGlobal ? null : value.value_id,
+    }))
   }
 
   const handleSelectChangeBrand = (value) => {
@@ -290,6 +343,7 @@ export const ModalProductos = () => {
                 wholesome_percent,
                 discount_percent,
                 cost_usd,
+                exchange_rate_id: exchange_rate_id || null,
                 user_id: usuario.id,
                 brand_id: marcaProducto.value,
                 categories: productCategories,
@@ -316,6 +370,7 @@ export const ModalProductos = () => {
                 wholesome_percent,
                 discount_percent,
                 cost_usd,
+                exchange_rate_id: exchange_rate_id || null,
                 brand_id: marcaProducto.value,
                 categories: productCategories,
               },
@@ -455,8 +510,10 @@ export const ModalProductos = () => {
     wholesome_percent,
     discount_percent,
     cost_usd,
+    exchange_rate_id,
   } = formValues
-  const tipoCambio = params[3]?.value || 6.96
+  const globalExchangeRateId = getGlobalExchangeRateId(params)
+  const globalOption = getGlobalOption(tiposDeCambioCombo, globalExchangeRateId)
 
   const CloseModal = () => {
     dispatch(uiCloseModal())
@@ -573,13 +630,33 @@ export const ModalProductos = () => {
                 invalid={errCostUsd}
               />
             </CCol>
-            <CCol md="4" className="pt-4">
-              <CAlert color="primary" className="m-0 p-2">
-                Tipo de Cambio: <b>{tipoCambio}</b>{' '}
-                <CAlertLink href="#/parametros">
+            <CCol md="4">
+              <CFormLabel>
+                Tipo de Cambio{' '}
+                <a href="#/parametros">
                   <CIcon icon={cilPen} />
-                </CAlertLink>
-              </CAlert>
+                </a>
+              </CFormLabel>
+              <Select
+                value={tipoDeCambioSeleccionado}
+                styles={selectStyles}
+                onChange={handleSelectChangeTipoDeCambio}
+                options={tiposDeCambioCombo}
+                getOptionValue={(o) => o.value_id}
+                formatOptionLabel={(o) => (
+                  <span>
+                    {o.label}
+                    {globalOption && o.value_id === globalOption.value_id && (
+                      <span style={{ fontSize: '0.75em', marginLeft: '6px', opacity: 0.6 }}>
+                        (global)
+                      </span>
+                    )}
+                  </span>
+                )}
+                isClearable
+                placeholder="Seleccione tipo de cambio..."
+                name="exchange_rate_id"
+              />
             </CCol>
             <CCol md="4">
               <CFormLabel htmlFor="price" className="col-sm-12 col-form-label">

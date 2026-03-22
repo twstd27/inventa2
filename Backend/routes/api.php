@@ -5,6 +5,7 @@ use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\EntryController;
 use App\Http\Controllers\EntryDetailController;
+use App\Http\Controllers\ExchangeRateController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\QuotationController;
@@ -96,3 +97,8 @@ Route::resource('params', ParamController::class)->except(['create', 'edit']);
 Route::get('pricelists/combo',[PriceListController::class, 'PriceListCombo']);
 Route::post('pricelists/{id}/restore',[PriceListController::class, 'Restore']);
 Route::resource('pricelists', PriceListController::class)->except(['create', 'edit']);
+
+//Tipos de Cambio
+Route::get('exchangerates/combo',[ExchangeRateController::class, 'ExchangeRateCombo']);
+Route::post('exchangerates/{id}/restore',[ExchangeRateController::class, 'Restore']);
+Route::resource('exchangerates', ExchangeRateController::class)->except(['create', 'edit']);

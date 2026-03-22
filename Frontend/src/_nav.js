@@ -111,6 +111,11 @@ const _nav = [
       // },
       {
         component: CNavItem,
+        name: 'Tipos de Cambio',
+        to: '/tiposdecambio',
+      },
+      {
+        component: CNavItem,
         name: 'Parámetros del Sistema',
         to: '/parametros',
       },

@@ -24,6 +24,7 @@ class Product extends Model
         'discount_percent',
         'wholesome_percent',
         'cost_usd',
+        'exchange_rate_id',
         'brand_id',
         'user_id'
     ];
@@ -41,6 +42,11 @@ class Product extends Model
     public function brands()
     {
         return $this->belongsTo(Brand::class)->withTrashed();
+    }
+
+    public function exchangeRate()
+    {
+        return $this->belongsTo(ExchangeRate::class);
     }
 
     public function user()

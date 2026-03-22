@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Brand;
 use App\Models\EntryDetail;
+use App\Models\ExchangeRate;
 use App\Models\Image;
 use App\Models\Product;
 use Exception;
@@ -16,6 +17,18 @@ use Illuminate\Validation\ValidationException;
 
 class ProductController extends Controller
 {
+    /**
+     * Resuelve el tipo de cambio global desde params.
+     * El param puede guardar el ID del tipo de cambio o el valor directo (retrocompatibilidad).
+     */
+    private function getGlobalExchangeRate(): float
+    {
+        $row = DB::select("SELECT value FROM `params` WHERE name = 'TipoCambio' LIMIT 1");
+        if (!isset($row[0])) return 6.96;
+        $er = ExchangeRate::find((int)$row[0]->value);
+        return $er ? (float)$er->value : (float)$row[0]->value;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -61,8 +74,9 @@ class ProductController extends Controller
               $product->quantity = "0.00";
           }
 
-          $exchange_rate_row = DB::select("SELECT value FROM `params` WHERE name = 'TipoCambio' LIMIT 1");
-          $exchange_rate = isset($exchange_rate_row[0]) ? (float)$exchange_rate_row[0]->value : 6.96;
+          $global_exchange_rate = $this->getGlobalExchangeRate();
+          $er = $product->exchange_rate_id ? ExchangeRate::find($product->exchange_rate_id) : null;
+          $exchange_rate = $er ? (float)$er->value : $global_exchange_rate;
 
           $auxPrice = round(($product->cost_usd * $exchange_rate * (1 + $product->price_percent)), 2);
           $auxPriceDiscount = round(($product->cost_usd * $exchange_rate * (1 + $product->discount_percent)), 2);
@@ -169,8 +183,9 @@ class ProductController extends Controller
             $producto->quantity = "0.00";
         }
 
-        $exchange_rate_row = DB::select("SELECT value FROM `params` WHERE name = 'TipoCambio' LIMIT 1");
-        $exchange_rate = isset($exchange_rate_row[0]) ? (float)$exchange_rate_row[0]->value : 6.96;
+        $global_exchange_rate = $this->getGlobalExchangeRate();
+        $er = $producto->exchange_rate_id ? ExchangeRate::find($producto->exchange_rate_id) : null;
+        $exchange_rate = $er ? (float)$er->value : $global_exchange_rate;
 
         $auxPrice = round(($producto->cost_usd * $exchange_rate * (1 + $producto->price_percent)), 2);
         $auxPriceDiscount = round(($producto->cost_usd * $exchange_rate * (1 + $producto->discount_percent)), 2);
@@ -232,6 +247,7 @@ class ProductController extends Controller
             'discount_percent',
             'wholesome_percent',
             'cost_usd',
+            'exchange_rate_id',
             'brand_id'
         ]));
 
@@ -397,11 +413,13 @@ class ProductController extends Controller
      */
     public function Etiquetas()
     {
-      $products = Product::select('price_percent', 'code', 'name', 'cost_usd')->get();
+      $products = Product::select('price_percent', 'code', 'name', 'cost_usd', 'exchange_rate_id')->get();
 
-      $products->each(function ($product) {
-        $exchange_rate_row = DB::select("SELECT value FROM `params` WHERE name = 'TipoCambio' LIMIT 1");
-        $exchange_rate = isset($exchange_rate_row[0]) ? (float)$exchange_rate_row[0]->value : 6.96;
+      $global_exchange_rate = $this->getGlobalExchangeRate();
+
+      $products->each(function ($product) use ($global_exchange_rate) {
+        $er = $product->exchange_rate_id ? ExchangeRate::find($product->exchange_rate_id) : null;
+        $exchange_rate = $er ? (float)$er->value : $global_exchange_rate;
 
         $auxPrice = round(($product->cost_usd * $exchange_rate * (1 + $product->price_percent)), 2);  
         $product->price = number_format((ceil($auxPrice * 2) / 2), 2, ".", "");

@@ -21,9 +21,12 @@ import {
   CToaster,
   CToastHeader,
 } from '@coreui/react'
+import Select from 'react-select'
 import { useDispatch, useSelector } from 'react-redux'
 import { getPrecios } from '../../actions/preciosAction'
 import { getParams, modifyParam } from '../../actions/paramsAction'
+import { getTiposDeCambio } from '../../actions/tipoDeCambioAction'
+import { SelectStyles } from '../../helpers/global'
 
 import CIcon from '@coreui/icons-react'
 import { cilCog, cilSave } from '@coreui/icons'
@@ -35,6 +38,9 @@ const ParametrosGenerales = () => {
   const [preciosCombo, setPreciosCombo] = useState([])
   const [params, setParams] = useState([])
   const [formLoading, setFormLoading] = useState(true)
+  const { tiposDeCambioCombo } = useSelector((state) => state.tipoDeCambio)
+  const { theme } = useSelector((state) => state.layout)
+  const selectStyles = SelectStyles(theme)
 
   useEffect(() => {
     setFormLoading(true)
@@ -46,8 +52,8 @@ const ParametrosGenerales = () => {
         console.error('Error fetching precios:', error)
       }
     }
-
     fetchPrecios()
+    dispatch(getTiposDeCambio('combo'))
     setFormLoading(false)
   }, [dispatch])
 
@@ -61,7 +67,6 @@ const ParametrosGenerales = () => {
         console.error('Error fetching params:', error)
       }
     }
-
     fetchParams()
     setFormLoading(false)
   }, [dispatch])
@@ -70,11 +75,10 @@ const ParametrosGenerales = () => {
     if (formLoading) return
 
     const { name, value, type, checked } = e.target
-
     const idParam = parseInt(name.split('_')[1])
 
     try {
-      const data = await dispatch(
+      await dispatch(
         modifyParam(idParam, { value: type === 'checkbox' ? (checked ? '1' : '0') : value }),
       )
       addToast(saveToast('success', 'Parámetro modificado'))
@@ -92,6 +96,25 @@ const ParametrosGenerales = () => {
     )
   }
 
+  const handleTipoCambioSelect = async (selected) => {
+    if (formLoading || !selected) return
+    const tipoCambioParam = params.find((p) => p.name === 'TipoCambio')
+    if (!tipoCambioParam) return
+
+    try {
+      await dispatch(modifyParam(tipoCambioParam.id, { value: String(selected.value_id) }))
+      addToast(saveToast('success', 'Tipo de cambio actualizado'))
+    } catch (error) {
+      addToast(saveToast('danger', 'Error al actualizar tipo de cambio'))
+    }
+
+    setParams((prevParams) =>
+      prevParams.map((param) =>
+        param.id === tipoCambioParam.id ? { ...param, value: String(selected.value_id) } : param,
+      ),
+    )
+  }
+
   const saveToast = (color, message) => (
     <CToast color={color}>
       <CToastBody>
@@ -99,6 +122,10 @@ const ParametrosGenerales = () => {
       </CToastBody>
     </CToast>
   )
+
+  const tipoCambioParam = params.find((p) => p.name === 'TipoCambio')
+  const tipoCambioSelected =
+    tiposDeCambioCombo.find((r) => r.value_id === parseInt(tipoCambioParam?.value)) || null
 
   return (
     <>
@@ -122,27 +149,15 @@ const ParametrosGenerales = () => {
                 <CCardTitle>Ventas</CCardTitle>
                 <CRow>
                   <CCol style={{ marginLeft: '20px' }}>
-                    <CFormInput
-                      type="number"
-                      label={params[3]?.description}
-                      id={`param_${params[3]?.id}`}
-                      name={`param_${params[3]?.id}`}
-                      value={params[3]?.value ?? 0}
-                      onChange={handleChange}
+                    <CFormLabel>Tipo de Cambio global (TipoCambio)</CFormLabel>
+                    <Select
+                      styles={selectStyles}
+                      value={tipoCambioSelected}
+                      onChange={handleTipoCambioSelect}
+                      options={tiposDeCambioCombo}
+                      getOptionValue={(o) => o.value_id}
+                      placeholder="Seleccione tipo de cambio..."
                     />
-                    {/*
-                      <CFormLabel htmlFor={`param_${params[1]?.id}`}>
-                        {params[1]?.description}
-                      </CFormLabel>
-                      <CFormSelect
-                        aria-label={params[1]?.description}
-                        id={`param_${params[1]?.id}`}
-                        name={`param_${params[1]?.id}`}
-                        value={params[1]?.value}
-                        options={preciosCombo}
-                        onChange={handleChange}
-                      />
-                    */}
                     <CFormSwitch
                       label={params[0]?.description}
                       className="mt-3"

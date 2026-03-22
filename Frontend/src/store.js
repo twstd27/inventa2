@@ -14,6 +14,7 @@ import { cotizacionesReducer } from './reducers/cotizacionesReducer'
 import { layoutReducer } from './reducers/layoutReducer'
 import { preciosReducer } from './reducers/preciosReducer'
 import { paramsReducer } from './reducers/paramsReducer'
+import { tipoDeCambioReducer } from './reducers/tipoDeCambioReducer'
 
 const composeEnhancers =
   (typeof window !== 'undefined' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) || compose
@@ -33,6 +34,7 @@ const reducers = combineReducers({
   layout: layoutReducer,
   precios: preciosReducer,
   params: paramsReducer,
+  tipoDeCambio: tipoDeCambioReducer,
 })
 
 const store = createStore(reducers, composeEnhancers(applyMiddleware(thunk)))

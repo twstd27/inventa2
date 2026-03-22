@@ -16,6 +16,7 @@ const ParametrosGenerales = React.lazy(() => import('./views/administrar/Paramet
 const ListaPrecios = React.lazy(() => import('./views/precios/AdministrarPrecios'))
 const QRScanner = React.lazy(() => import('./views/productos/qr'))
 const Etiquetas = React.lazy(() => import('./views/productos/AdministrarEtiquetas'))
+const TiposDeCambio = React.lazy(() => import('./views/tipoDeCambio/AdministrarTiposDeCambio'))
 
 const routes = [
   { path: '/', exact: true, name: 'Home', element: Dashboard },
@@ -36,6 +37,7 @@ const routes = [
   // { path: '/listaprecios', name: 'Lista de Precios', element: ListaPrecios },
   { path: '/qr-scanner', name: 'Escaner QR', element: QRScanner },
   { path: '/etiquetas', name: 'Etiquetas', element: Etiquetas },
+  { path: '/tiposdecambio', name: 'Tipos de Cambio', element: TiposDeCambio },
 ]
 
 export default routes
