@@ -1,31 +1,29 @@
 import React, { useEffect } from 'react'
 import { CCard, CCardBody, CCardHeader, CCol, CRow, CButton, CCardTitle } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { useDispatch } from 'react-redux'
-import { uiOpenModal } from '../../actions/uiAction'
-import { getSucursales, resetSucursales } from '../../actions/sucursalesAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useSucursalesStore } from '../../stores/useSucursalesStore'
 import TablaSucursales from './TablaSucursales'
 import { ModalSucursales } from './ModalSucursales'
 import { DialogSucursales } from './DialogSucursales'
 import { cilPlus } from '@coreui/icons'
 
 const AdministrarSucursales = () => {
-  const dispatch = useDispatch()
+  const { openModal } = useUIStore()
+  const { getSucursales, resetSucursales } = useSucursalesStore()
 
   useEffect(() => {
-    dispatch(getSucursales())
-  }, [dispatch])
+    getSucursales()
+  }, [])
 
-  const openModal = () => {
-    dispatch(resetSucursales())
-    dispatch(
-      uiOpenModal(
-        <span>
-          <CIcon icon={cilPlus} /> Nueva Sucursal
-        </span>,
-        'Crear Sucursal',
-        'crear',
-      ),
+  const openModalNew = () => {
+    resetSucursales()
+    openModal(
+      <span>
+        <CIcon icon={cilPlus} /> Nueva Sucursal
+      </span>,
+      'Crear Sucursal',
+      'crear',
     )
   }
 
@@ -38,7 +36,7 @@ const AdministrarSucursales = () => {
               <CCardTitle>Lista de Sucursales</CCardTitle>
             </div>
             <div className="card-header-actions text-end">
-              <CButton color="primary" onClick={openModal}>
+              <CButton color="primary" onClick={openModalNew}>
                 <CIcon icon={cilPlus} /> Nuevo
               </CButton>
             </div>

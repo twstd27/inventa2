@@ -1,31 +1,29 @@
 import React, { useEffect, useState } from 'react'
 import { CCard, CCardBody, CCardHeader, CCol, CRow, CButton, CCardTitle } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { useDispatch } from 'react-redux'
-import { uiOpenModal } from '../../actions/uiAction'
-import { getMarcas, resetMarcas } from '../../actions/marcasActions'
+import { useUIStore } from '../../stores/useUIStore'
+import { useMarcasStore } from '../../stores/useMarcasStore'
 import TablaMarcas from './TablaMarcas'
 import { ModalMarcas } from './ModalMarcas'
 import { DialogMarcas } from './DialogMarcas'
 import { cilPlus } from '@coreui/icons'
 
 const AdministrarMarcas = () => {
-  const dispatch = useDispatch()
+  const { openModal } = useUIStore()
+  const { getMarcas, resetMarcas } = useMarcasStore()
 
   useEffect(() => {
-    dispatch(getMarcas())
-  }, [dispatch])
+    getMarcas()
+  }, [])
 
-  const openModal = () => {
-    dispatch(resetMarcas())
-    dispatch(
-      uiOpenModal(
-        <span>
-          <CIcon icon={cilPlus} /> Nueva Marca
-        </span>,
-        'Crear Marca',
-        'crear',
-      ),
+  const openModalNuevo = () => {
+    resetMarcas()
+    openModal(
+      <span>
+        <CIcon icon={cilPlus} /> Nueva Marca
+      </span>,
+      'Crear Marca',
+      'crear',
     )
   }
 
@@ -38,7 +36,7 @@ const AdministrarMarcas = () => {
               <CCardTitle>Lista de Marcas</CCardTitle>
             </div>
             <div className="card-header-actions text-end">
-              <CButton color="primary" onClick={openModal}>
+              <CButton color="primary" onClick={openModalNuevo}>
                 <CIcon icon={cilPlus} /> Nuevo
               </CButton>
             </div>

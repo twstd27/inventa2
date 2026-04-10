@@ -19,44 +19,39 @@ import {
   CTableHeaderCell,
   CTableRow,
 } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiOpenDialog, uiOpenModal } from '../../actions/uiAction'
-import { setRol } from '../../actions/rolesAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useRolesStore } from '../../stores/useRolesStore'
 import { colorBadge } from '../../helpers/global'
 import CIcon from '@coreui/icons-react'
 import { cilCheckAlt, cilPencil, cilX, cilWarning } from '@coreui/icons'
 
 const TablaRoles = () => {
-  const dispatch = useDispatch()
-  const { roles } = useSelector((state) => state.roles)
+  const { openModal, openDialog } = useUIStore()
+  const { roles, setRol } = useRolesStore()
 
-  const openModal = (rol) => {
-    dispatch(setRol(rol))
-    dispatch(
-      uiOpenModal(
-        <span>
-          <CIcon icon={cilPencil} /> Editar Rol
-        </span>,
-        'Guardar Cambios',
-        'modificar',
-      ),
+  const openModal_ = (rol) => {
+    setRol(rol)
+    openModal(
+      <span>
+        <CIcon icon={cilPencil} /> Editar Rol
+      </span>,
+      'Guardar Cambios',
+      'modificar',
     )
   }
 
   const toggleAlert = (tipo, rol) => {
-    dispatch(setRol(rol))
-    dispatch(
-      uiOpenDialog(
-        <span>
-          <CIcon icon={cilWarning} /> Confirmación
-        </span>,
-        <span>
-          ¿Está seguro que quiere cambiar el rol a estado <strong>{tipo}</strong>?
-        </span>,
-        'Si',
-        'No',
-        tipo,
-      ),
+    setRol(rol)
+    openDialog(
+      <span>
+        <CIcon icon={cilWarning} /> Confirmación
+      </span>,
+      <span>
+        ¿Está seguro que quiere cambiar el rol a estado <strong>{tipo}</strong>?
+      </span>,
+      'Si',
+      'No',
+      tipo,
     )
   }
 
@@ -88,7 +83,7 @@ const TablaRoles = () => {
                   variant="outline"
                   shape="square"
                   onClick={() => {
-                    openModal(row.original)
+                    openModal_(row.original)
                   }}
                 >
                   <CIcon icon={cilPencil} />
@@ -151,7 +146,7 @@ const TablaRoles = () => {
         filterFn: 'equals',
       },
     ],
-    [dispatch],
+    [],
   )
 
   const table = useReactTable({

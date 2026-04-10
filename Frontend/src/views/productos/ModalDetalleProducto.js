@@ -13,35 +13,34 @@ import {
   CModalTitle,
   CRow,
 } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseModal, uiOpenProductoEtiquetaModal } from '../../actions/uiAction'
-import { DISK } from '../../types/types'
+import { useUIStore } from '../../stores/useUIStore'
+import { useProductosStore } from '../../stores/useProductosStore'
 import CIcon from '@coreui/icons-react'
 import { cilTag, cilPrint } from '@coreui/icons'
 
 export const ModalDetalleProducto = (props) => {
-  const dispatch = useDispatch()
-  const { modalOpen, modalTitle, modalButton, loading } = useSelector((state) => state.ui)
-  const { producto } = useSelector((state) => state.productos)
+  const { modalOpen, modalTitle, modalButton, closeModal, openProductoEtiquetaModal } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { producto } = useProductosStore()
+
+  const DISK = import.meta.env.VITE_DISK_URL
 
   const CloseModal = () => {
-    dispatch(uiCloseModal())
+    closeModal()
   }
 
   const openModalEtiqueta = () => {
-    dispatch(uiCloseModal())
+    closeModal()
 
     setTimeout(() => {
-      dispatch(
-        uiOpenProductoEtiquetaModal(
-          <span>
-            <CIcon icon={cilTag} /> Etiqueta
-          </span>,
-          <span>
-            <CIcon icon={cilPrint} /> Imprimir Etiqueta
-          </span>,
-          'modificar',
-        ),
+      openProductoEtiquetaModal(
+        <span>
+          <CIcon icon={cilTag} /> Etiqueta
+        </span>,
+        <span>
+          <CIcon icon={cilPrint} /> Imprimir Etiqueta
+        </span>,
+        'modificar',
       )
     }, 150)
   }

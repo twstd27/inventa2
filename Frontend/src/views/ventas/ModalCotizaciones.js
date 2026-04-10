@@ -10,8 +10,8 @@ import {
   CRow,
 } from '@coreui/react'
 import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseModal } from '../../actions/uiAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useCotizacionesStore } from '../../stores/useCotizacionesStore'
 import { format } from 'date-fns'
 // import moment from "moment";
 import { NumeroLiteral } from '../../helpers/global'
@@ -19,9 +19,8 @@ import { NumeroLiteral } from '../../helpers/global'
 import { useReactTable, getCoreRowModel, flexRender } from '@tanstack/react-table'
 
 export const ModalCotizaciones = (props) => {
-  const dispatch = useDispatch()
-  const { modalCotizacionesOpen, modalTitle } = useSelector((state) => state.ui)
-  const { cotizacion } = useSelector((state) => state.cotizaciones)
+  const { modalCotizacionesOpen, modalTitle, closeModal } = useUIStore()
+  const { cotizacion } = useCotizacionesStore()
 
   // Definir las columnas
   const columns = React.useMemo(
@@ -59,7 +58,7 @@ export const ModalCotizaciones = (props) => {
   // ]
 
   const CloseModal = () => {
-    dispatch(uiCloseModal())
+    closeModal()
   }
 
   return (

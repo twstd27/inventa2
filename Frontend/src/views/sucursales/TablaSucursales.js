@@ -20,15 +20,14 @@ import {
   CTableHeaderCell,
   CTableRow,
 } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiOpenDialog, uiOpenModal } from '../../actions/uiAction'
-import { setSucursal } from '../../actions/sucursalesAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useSucursalesStore } from '../../stores/useSucursalesStore'
 import CIcon from '@coreui/icons-react'
 import { cilCheckAlt, cilPencil, cilX, cilWarning } from '@coreui/icons'
 
 const TablaSucursales = () => {
-  const dispatch = useDispatch()
-  const { sucursales } = useSelector((state) => state.sucursales)
+  const { openModal, openDialog } = useUIStore()
+  const { sucursales, setSucursal } = useSucursalesStore()
 
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -38,6 +37,32 @@ const TablaSucursales = () => {
   const paginas = []
   for (let i = 1; i <= Math.ceil(sucursales.length / pagination.pageSize); i++) {
     paginas.push({ value: i, label: i })
+  }
+
+  const openModal_ = (sucursal) => {
+    setSucursal(sucursal)
+    openModal(
+      <span>
+        <CIcon icon={cilPencil} /> Editar Sucursal
+      </span>,
+      'Guardar Cambios',
+      'modificar',
+    )
+  }
+
+  const toggleAlert = (tipo, sucursal) => {
+    setSucursal(sucursal)
+    openDialog(
+      <span>
+        <CIcon icon={cilWarning} /> Confirmación
+      </span>,
+      <span>
+        Está seguro que quiere cambiar la sucursal a estado <strong>{tipo}</strong>?
+      </span>,
+      'Si',
+      'No',
+      tipo,
+    )
   }
 
   const columns = useMemo(
@@ -57,7 +82,7 @@ const TablaSucursales = () => {
                   color="primary"
                   variant="outline"
                   shape="rounded-0"
-                  onClick={() => openModal(row.original)}
+                  onClick={() => openModal_(row.original)}
                 >
                   <CIcon icon={cilPencil} />
                 </CButton>{' '}
@@ -108,7 +133,7 @@ const TablaSucursales = () => {
         ),
       },
     ],
-    [dispatch],
+    [],
   )
 
   const table = useReactTable({
@@ -122,36 +147,6 @@ const TablaSucursales = () => {
     },
     getFilteredRowModel: getFilteredRowModel(),
   })
-
-  const openModal = (sucursal) => {
-    dispatch(setSucursal(sucursal))
-    dispatch(
-      uiOpenModal(
-        <span>
-          <CIcon icon={cilPencil} /> Editar Sucursal
-        </span>,
-        'Guardar Cambios',
-        'modificar',
-      ),
-    )
-  }
-
-  const toggleAlert = (tipo, sucursal) => {
-    dispatch(setSucursal(sucursal))
-    dispatch(
-      uiOpenDialog(
-        <span>
-          <CIcon icon={cilWarning} /> Confirmación
-        </span>,
-        <span>
-          Está seguro que quiere cambiar la sucursal a estado <strong>{tipo}</strong>?
-        </span>,
-        'Si',
-        'No',
-        tipo,
-      ),
-    )
-  }
 
   return (
     <>

@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
 import {
   CButton,
   CCard,
@@ -12,16 +11,15 @@ import {
 } from '@coreui/react'
 import { NumeroLiteral, URLVariable } from '../../../helpers/global'
 import { format } from 'date-fns'
-import { getCotizacion } from '../../../actions/cotizacionesAction'
+import { useCotizacionesStore } from '../../../stores/useCotizacionesStore'
 
 const VentaPrint = (props) => {
-  const dispatch = useDispatch()
-  const { cotizacionImp: cotizacion } = useSelector((state) => state.cotizaciones)
+  const { cotizacionImp: cotizacion, getCotizacion } = useCotizacionesStore()
 
   useEffect(() => {
     let id = URLVariable(props, 'id')
     if (id !== null) {
-      dispatch(getCotizacion(id, 'imp'))
+      getCotizacion(id, 'imp')
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 

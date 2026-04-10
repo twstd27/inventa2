@@ -1,11 +1,9 @@
 import React from 'react'
 import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseDialog } from '../../actions/uiAction'
-import { deleteTipoDeCambio, restoreTipoDeCambio } from '../../actions/tipoDeCambioAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useTipoDeCambioStore } from '../../stores/useTipoDeCambioStore'
 
 export const DialogTipoDeCambio = () => {
-  const dispatch = useDispatch()
   const {
     dialogOpen,
     dialogTitle,
@@ -13,19 +11,18 @@ export const DialogTipoDeCambio = () => {
     dialogButtonOk,
     dialogButtonCancel,
     dialogAction,
-    loading,
-  } = useSelector((state) => state.ui)
-  const { tipoDeCambio } = useSelector((state) => state.tipoDeCambio)
+    closeDialog,
+  } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { tipoDeCambio, deleteTipoDeCambio, restoreTipoDeCambio } = useTipoDeCambioStore()
 
   const handleClick = () => {
     if (dialogAction === 'activo') {
-      dispatch(restoreTipoDeCambio(tipoDeCambio))
+      restoreTipoDeCambio(tipoDeCambio)
     } else {
-      dispatch(deleteTipoDeCambio(tipoDeCambio))
+      deleteTipoDeCambio(tipoDeCambio)
     }
   }
-
-  const closeDialog = () => dispatch(uiCloseDialog())
 
   return (
     <CModal visible={dialogOpen} onClose={closeDialog} size="sm">

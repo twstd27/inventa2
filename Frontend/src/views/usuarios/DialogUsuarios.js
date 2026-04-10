@@ -1,11 +1,9 @@
 import React from 'react'
 import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseDialog } from '../../actions/uiAction'
-import { deleteUser, restoreUser } from '../../actions/usuariosAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useUsuariosStore } from '../../stores/useUsuariosStore'
 
 export const DialogUsuarios = () => {
-  const dispatch = useDispatch()
   const {
     dialogOpen,
     dialogTitle,
@@ -13,20 +11,17 @@ export const DialogUsuarios = () => {
     dialogButtonOk,
     dialogButtonCancel,
     dialogAction,
-    loading,
-  } = useSelector((state) => state.ui)
-  const { usuario } = useSelector((state) => state.usuarios)
+    closeDialog,
+  } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { usuario, deleteUser, restoreUser } = useUsuariosStore()
 
   const handleClick = () => {
     if (dialogAction === 'activo') {
-      dispatch(restoreUser(usuario))
+      restoreUser(usuario)
     } else {
-      dispatch(deleteUser(usuario))
+      deleteUser(usuario)
     }
-  }
-
-  const closeDialog = () => {
-    dispatch(uiCloseDialog())
   }
 
   return (

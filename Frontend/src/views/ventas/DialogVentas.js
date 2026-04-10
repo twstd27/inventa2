@@ -13,16 +13,14 @@ import {
   CCollapse,
   CFormSwitch,
 } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useUIStore } from '../../stores/useUIStore'
+import { useVentasStore } from '../../stores/useVentasStore'
 import { format } from 'date-fns'
 import { NumeroLiteral } from '../../helpers/global'
-import { uiCloseDialog } from '../../actions/uiAction'
-import { deleteSale } from '../../actions/ventasAction'
 import { useReactTable, getCoreRowModel, flexRender } from '@tanstack/react-table'
 import { Printer } from 'lucide-react'
 
 export const DialogVentas = (props) => {
-  const dispatch = useDispatch()
   const {
     dialogVentasOpen,
     dialogTitle,
@@ -30,9 +28,11 @@ export const DialogVentas = (props) => {
     dialogButtonOk,
     dialogButtonCancel,
     dialogAction,
-    loading,
     venta,
-  } = useSelector((state) => state.ui)
+    closeDialog,
+  } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { venta: ventaModal, deleteSale } = useVentasStore()
 
   const [datosFactura, setDatosFactura] = useState(false)
   const [detallesVenta, setDetallesVenta] = useState({
@@ -41,7 +41,6 @@ export const DialogVentas = (props) => {
     nit: '',
     razonSocial: '',
   })
-  const { venta: ventaModal } = useSelector((state) => state.ventas)
 
   // console.log(venta)
 
@@ -63,7 +62,7 @@ export const DialogVentas = (props) => {
         props.f1(nuevaVenta)
         break
       case 'inactivo':
-        dispatch(deleteSale(ventaModal))
+        deleteSale(ventaModal)
         break
       default:
         break
@@ -122,10 +121,6 @@ export const DialogVentas = (props) => {
     columns,
     getCoreRowModel: getCoreRowModel(),
   })
-
-  const closeDialog = useCallback(() => {
-    dispatch(uiCloseDialog())
-  }, [dispatch])
 
   return dialogAction === 'crear' ? (
     <CModal visible={dialogVentasOpen} onClose={closeDialog} size="lg">

@@ -20,21 +20,46 @@ import {
   CTableHeaderCell,
   CTableRow,
 } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiOpenDialog, uiOpenModal } from '../../actions/uiAction'
-import { setTipoDeCambio } from '../../actions/tipoDeCambioAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useTipoDeCambioStore } from '../../stores/useTipoDeCambioStore'
 import CIcon from '@coreui/icons-react'
 import { cilCheckAlt, cilPencil, cilX, cilWarning } from '@coreui/icons'
 
 const TablaTiposDeCambio = () => {
-  const dispatch = useDispatch()
-  const { tiposDeCambio } = useSelector((state) => state.tipoDeCambio)
+  const { openModal, openDialog } = useUIStore()
+  const { tiposDeCambio, setTipoDeCambio } = useTipoDeCambioStore()
 
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
 
   const paginas = []
   for (let i = 1; i <= Math.ceil(tiposDeCambio.length / pagination.pageSize); i++) {
     paginas.push({ value: i, label: i })
+  }
+
+  const openModal_ = (item) => {
+    setTipoDeCambio(item)
+    openModal(
+      <span>
+        <CIcon icon={cilPencil} /> Editar Tipo de Cambio
+      </span>,
+      'Guardar Cambios',
+      'modificar',
+    )
+  }
+
+  const toggleAlert = (tipo, item) => {
+    setTipoDeCambio(item)
+    openDialog(
+      <span>
+        <CIcon icon={cilWarning} /> Confirmación
+      </span>,
+      <span>
+        ¿Está seguro que quiere cambiar el tipo de cambio a estado <strong>{tipo}</strong>?
+      </span>,
+      'Sí',
+      'No',
+      tipo,
+    )
   }
 
   const columns = useMemo(
@@ -68,7 +93,7 @@ const TablaTiposDeCambio = () => {
                   color="primary"
                   variant="outline"
                   shape="rounded-0"
-                  onClick={() => openModal(row.original)}
+                  onClick={() => openModal_(row.original)}
                 >
                   <CIcon icon={cilPencil} />
                 </CButton>{' '}
@@ -95,7 +120,7 @@ const TablaTiposDeCambio = () => {
         ),
       },
     ],
-    [dispatch],
+    [],
   )
 
   const table = useReactTable({
@@ -107,36 +132,6 @@ const TablaTiposDeCambio = () => {
     state: { pagination },
     getFilteredRowModel: getFilteredRowModel(),
   })
-
-  const openModal = (item) => {
-    dispatch(setTipoDeCambio(item))
-    dispatch(
-      uiOpenModal(
-        <span>
-          <CIcon icon={cilPencil} /> Editar Tipo de Cambio
-        </span>,
-        'Guardar Cambios',
-        'modificar',
-      ),
-    )
-  }
-
-  const toggleAlert = (tipo, item) => {
-    dispatch(setTipoDeCambio(item))
-    dispatch(
-      uiOpenDialog(
-        <span>
-          <CIcon icon={cilWarning} /> Confirmación
-        </span>,
-        <span>
-          ¿Está seguro que quiere cambiar el tipo de cambio a estado <strong>{tipo}</strong>?
-        </span>,
-        'Sí',
-        'No',
-        tipo,
-      ),
-    )
-  }
 
   return (
     <>

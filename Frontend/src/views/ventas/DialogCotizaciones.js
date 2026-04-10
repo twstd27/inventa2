@@ -6,13 +6,13 @@ import {
   CModalHeader,
   CModalTitle
 } from "@coreui/react";
-import {useDispatch, useSelector} from "react-redux";
-import {uiCloseDialog} from "../../actions/uiAction";
+import { useUIStore } from '../../stores/useUIStore'
+import { useCotizacionesStore } from '../../stores/useCotizacionesStore'
 
 export const DialogCotizaciones = (props) => {
-  const dispatch = useDispatch();
-  const {dialogCotizacionesOpen, dialogTitle, dialogBody, dialogButtonOk, dialogButtonCancel, dialogAction, loading} = useSelector(state => state.ui);
-  const {cotizacion} = useSelector(state => state.cotizaciones);
+  const {dialogCotizacionesOpen, dialogTitle, dialogBody, dialogButtonOk, dialogButtonCancel, dialogAction, closeDialog} = useUIStore();
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const {cotizacion} = useCotizacionesStore();
 
   const handleClick = () => {
     switch (dialogAction){
@@ -21,10 +21,6 @@ export const DialogCotizaciones = (props) => {
         break;
       default: break;
     }
-  }
-
-  const closeDialog = () =>{
-    dispatch(uiCloseDialog());
   }
 
   return(

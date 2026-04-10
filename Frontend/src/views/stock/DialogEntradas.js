@@ -1,11 +1,9 @@
 import React from 'react'
 import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseDialog } from '../../actions/uiAction'
-import { deleteEntry, restoreEntry } from '../../actions/stockAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useStockStore } from '../../stores/useStockStore'
 
 export const DialogEntradas = () => {
-  const dispatch = useDispatch()
   const {
     dialogOpen,
     dialogTitle,
@@ -13,20 +11,17 @@ export const DialogEntradas = () => {
     dialogButtonOk,
     dialogButtonCancel,
     dialogAction,
-    loading,
-  } = useSelector((state) => state.ui)
-  const { entrada } = useSelector((state) => state.stock)
+    closeDialog,
+  } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { entrada, deleteEntry, restoreEntry } = useStockStore()
 
   const handleClick = () => {
     if (dialogAction === 'activo') {
-      dispatch(restoreEntry(entrada))
+      restoreEntry(entrada)
     } else {
-      dispatch(deleteEntry(entrada))
+      deleteEntry(entrada)
     }
-  }
-
-  const closeDialog = () => {
-    dispatch(uiCloseDialog())
   }
 
   return (

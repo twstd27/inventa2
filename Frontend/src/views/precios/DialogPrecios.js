@@ -1,11 +1,9 @@
 import React from 'react'
 import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseDialog } from '../../actions/uiAction'
-import { deletePriceList, restorePriceList } from '../../actions/preciosAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { usePreciosStore } from '../../stores/usePreciosStore'
 
 export const DialogPrecios = () => {
-  const dispatch = useDispatch()
   const {
     dialogOpen,
     dialogTitle,
@@ -13,20 +11,17 @@ export const DialogPrecios = () => {
     dialogButtonOk,
     dialogButtonCancel,
     dialogAction,
-    loading,
-  } = useSelector((state) => state.ui)
-  const { listaPrecio } = useSelector((state) => state.precios)
+    closeDialog,
+  } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { listaPrecio, deletePriceList, restorePriceList } = usePreciosStore()
 
   const handleClick = () => {
     if (dialogAction === 'activo') {
-      dispatch(restorePriceList(listaPrecio))
+      restorePriceList(listaPrecio)
     } else {
-      dispatch(deletePriceList(listaPrecio))
+      deletePriceList(listaPrecio)
     }
-  }
-
-  const closeDialog = () => {
-    dispatch(uiCloseDialog())
   }
 
   return (

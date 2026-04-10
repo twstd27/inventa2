@@ -10,17 +10,15 @@ import {
 } from '@coreui/react'
 import { cilLockLocked, cilSettings, cilUser } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
-import { useDispatch, useSelector } from 'react-redux'
-import { startLogout } from '../../actions/authAction'
+import { useAuthStore } from '../../stores/useAuthStore'
 
 import avatar from './../../assets/images/avatars/default.png'
 
 const AppHeaderDropdown = () => {
-  const { usuario } = useSelector((state) => state.auth)
-  const dispatch = useDispatch()
+  const { usuario, startLogout } = useAuthStore()
 
   const handleLogout = () => {
-    dispatch(startLogout())
+    startLogout()
   }
 
   return (

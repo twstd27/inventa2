@@ -1,11 +1,9 @@
 import React from 'react'
 import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseDialog } from '../../actions/uiAction'
-import { deleteBrand, restoreBrand } from '../../actions/marcasActions'
+import { useUIStore } from '../../stores/useUIStore'
+import { useMarcasStore } from '../../stores/useMarcasStore'
 
 export const DialogMarcas = () => {
-  const dispatch = useDispatch()
   const {
     dialogOpen,
     dialogTitle,
@@ -13,20 +11,17 @@ export const DialogMarcas = () => {
     dialogButtonOk,
     dialogButtonCancel,
     dialogAction,
-    loading,
-  } = useSelector((state) => state.ui)
-  const { marca } = useSelector((state) => state.marcas)
+    closeDialog,
+  } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { marca, deleteBrand, restoreBrand } = useMarcasStore()
 
   const handleClick = () => {
     if (dialogAction === 'activo') {
-      dispatch(restoreBrand(marca))
+      restoreBrand(marca)
     } else {
-      dispatch(deleteBrand(marca))
+      deleteBrand(marca)
     }
-  }
-
-  const closeDialog = () => {
-    dispatch(uiCloseDialog())
   }
 
   return (

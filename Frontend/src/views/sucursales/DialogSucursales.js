@@ -1,11 +1,9 @@
 import React from 'react'
 import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseDialog } from '../../actions/uiAction'
-import { deleteBranch, restoreBranch } from '../../actions/sucursalesAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useSucursalesStore } from '../../stores/useSucursalesStore'
 
 export const DialogSucursales = () => {
-  const dispatch = useDispatch()
   const {
     dialogOpen,
     dialogTitle,
@@ -13,20 +11,17 @@ export const DialogSucursales = () => {
     dialogButtonOk,
     dialogButtonCancel,
     dialogAction,
-    loading,
-  } = useSelector((state) => state.ui)
-  const { sucursal } = useSelector((state) => state.sucursales)
+    closeDialog,
+  } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { sucursal, deleteBranch, restoreBranch } = useSucursalesStore()
 
   const handleClick = () => {
     if (dialogAction === 'activo') {
-      dispatch(restoreBranch(sucursal))
+      restoreBranch(sucursal)
     } else {
-      dispatch(deleteBranch(sucursal))
+      deleteBranch(sucursal)
     }
-  }
-
-  const closeDialog = () => {
-    dispatch(uiCloseDialog())
   }
 
   return (

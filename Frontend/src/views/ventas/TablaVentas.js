@@ -21,9 +21,9 @@ import {
   getPaginationRowModel,
   getFilteredRowModel,
 } from '@tanstack/react-table'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiOpenVentasDialog, uiOpenVentasModal } from '../../actions/uiAction'
-import { setVenta, getVentas } from '../../actions/ventasAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useVentasStore } from '../../stores/useVentasStore'
+import { useLayoutStore } from '../../stores/useLayoutStore'
 import { format } from 'date-fns'
 import {
   Calendar,
@@ -39,11 +39,10 @@ import {
 } from 'lucide-react'
 
 const TablaVentas = () => {
-  const dispatch = useDispatch()
-  const { ventas, paginaActual, ultimaPagina, totalVentas } = useSelector((state) => state.ventas)
-
-  const { theme } = useSelector((state) => state.layout)
-  const { loading } = useSelector((state) => state.ui)
+  const { openVentasModal, openVentasDialog } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { ventas, paginaActual, ultimaPagina, totalVentas, setVenta, getVentas } = useVentasStore()
+  const { theme } = useLayoutStore()
 
   const [pagination, setPagination] = useState({
     pageIndex: 1,
@@ -56,8 +55,33 @@ const TablaVentas = () => {
   }
 
   useEffect(() => {
-    dispatch(getVentas('', pagination.pageIndex, pagination.pageSize))
-  }, [dispatch, pagination])
+    getVentas('', pagination.pageIndex, pagination.pageSize)
+  }, [pagination])
+
+  const openModal = (venta) => {
+    setVenta(venta)
+    openVentasModal(
+      <>
+        <Eye /> Detalle de Venta
+      </>,
+      '',
+      'crear',
+    )
+  }
+
+  const toggleAlert = (tipo, venta) => {
+    console.log(venta)
+    setVenta(venta)
+    openVentasDialog(
+      <TriangleAlert />,
+      <span>
+        Está seguro que quiere <b>eliminar</b> la venta? (esta acción no se puede deshacer)
+      </span>,
+      'Si',
+      'No',
+      tipo,
+    )
+  }
 
   const columns = useMemo(
     () => [
@@ -143,7 +167,7 @@ const TablaVentas = () => {
         ),
       },
     ],
-    [dispatch],
+    [],
   )
 
   const table = useReactTable({
@@ -158,35 +182,6 @@ const TablaVentas = () => {
     getFilteredRowModel: getFilteredRowModel(),
     manualPagination: true,
   })
-
-  const openModal = (venta) => {
-    dispatch(setVenta(venta))
-    dispatch(
-      uiOpenVentasModal(
-        <>
-          <Eye /> Detalle de Venta
-        </>,
-        '',
-        'crear',
-      ),
-    )
-  }
-
-  const toggleAlert = (tipo, venta) => {
-    console.log(venta)
-    dispatch(setVenta(venta))
-    dispatch(
-      uiOpenVentasDialog(
-        <TriangleAlert />,
-        <span>
-          Está seguro que quiere <b>eliminar</b> la venta? (esta acción no se puede deshacer)
-        </span>,
-        'Si',
-        'No',
-        tipo,
-      ),
-    )
-  }
 
   return (
     <div className="position-relative">

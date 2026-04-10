@@ -20,74 +20,59 @@ import {
   CTableHeaderCell,
   CTableRow,
 } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
-import {
-  uiOpenModal,
-  uiOpenProductoEtiquetaModal,
-  uiOpenProductosDialog,
-} from '../../actions/uiAction'
-
-import { setProducto } from '../../actions/productosAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useProductosStore } from '../../stores/useProductosStore'
+import { useLayoutStore } from '../../stores/useLayoutStore'
 import { colorBadge } from '../../helpers/global'
 import CIcon from '@coreui/icons-react'
 import { cilCheckAlt, cilPencil, cilX, cilWarning, cilTag, cilPrint } from '@coreui/icons'
 
-import { getProductos } from '../../actions/productosAction'
-
 const TablaProductos = () => {
-  const dispatch = useDispatch()
-  const { productos, paginaActual, ultimaPagina, totalProductos } = useSelector(
-    (state) => state.productos,
-  )
+  const { openModal, openProductoEtiquetaModal, openProductosDialog } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { productos, paginaActual, ultimaPagina, totalProductos, getProductos, setProducto } = useProductosStore()
   const [globalFilter, setGlobalFilter] = useState('')
 
-  const { theme } = useSelector((state) => state.layout)
-  const { loading } = useSelector((state) => state.ui)
+  const { theme } = useLayoutStore()
 
   const debounceTimer = useRef(null)
 
-  const openModal = (producto) => {
-    dispatch(setProducto(producto))
-    dispatch(
-      uiOpenModal(
-        <span>
-          <CIcon icon={cilPencil} /> Editar Producto
-        </span>,
-        'Guardar Cambios',
-        'modificar',
-      ),
+  const openModalEdit = (producto) => {
+    setProducto(producto)
+    openModal(
+      <span>
+        <CIcon icon={cilPencil} /> Editar Producto
+      </span>,
+      'Guardar Cambios',
+      'modificar',
     )
   }
 
   const openModalEtiqueta = (producto) => {
-    dispatch(setProducto(producto))
-    dispatch(
-      uiOpenProductoEtiquetaModal(
-        <span>
-          <CIcon icon={cilTag} /> Etiqueta
-        </span>,
-        <span>
-          <CIcon icon={cilPrint} /> Imprimir Etiqueta
-        </span>,
-        'modificar',
-      ),
+    setProducto(producto)
+    openProductoEtiquetaModal(
+      <span>
+        <CIcon icon={cilTag} /> Etiqueta
+      </span>,
+      <span>
+        <CIcon icon={cilPrint} /> Imprimir Etiqueta
+      </span>,
+      'modificar',
     )
   }
 
   const toggleAlert = (tipo, producto) => {
-    dispatch(setProducto(producto))
-    dispatch(
-      uiOpenProductosDialog(
-        <span>
-          <CIcon icon={cilWarning} /> Confirmación
-        </span>,
-        <span>
-          Está seguro que quiere cambiar el producto a estado <strong>{tipo}</strong>?
-        </span>,
-        'Si',
-        'No',
-        tipo,
-      ),
+    setProducto(producto)
+    openProductosDialog(
+      <span>
+        <CIcon icon={cilWarning} /> Confirmación
+      </span>,
+      <span>
+        Está seguro que quiere cambiar el producto a estado <strong>{tipo}</strong>?
+      </span>,
+      'Si',
+      'No',
+      tipo,
     )
   }
 
@@ -102,8 +87,8 @@ const TablaProductos = () => {
   }
 
   useEffect(() => {
-    dispatch(getProductos('', { search: globalFilter }, pagination.pageIndex, pagination.pageSize))
-  }, [dispatch, globalFilter, pagination])
+    getProductos('', { search: globalFilter }, pagination.pageIndex, pagination.pageSize)
+  }, [globalFilter, pagination])
 
   const handleKeyUp = ({ target }) => {
     clearTimeout(debounceTimer.current)
@@ -130,7 +115,7 @@ const TablaProductos = () => {
                   variant="outline"
                   shape="square"
                   onClick={() => {
-                    openModal(row.original)
+                    openModalEdit(row.original)
                   }}
                 >
                   <CIcon icon={cilPencil} />
@@ -213,7 +198,7 @@ const TablaProductos = () => {
         filterFn: 'equals',
       },
     ],
-    [dispatch],
+    [],
   )
 
   const table = useReactTable({

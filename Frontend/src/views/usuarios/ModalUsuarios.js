@@ -13,24 +13,23 @@ import {
   CModalTitle,
 } from '@coreui/react'
 import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseModal } from '../../actions/uiAction'
-import { modifyUser, registerUser } from '../../actions/usuariosAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useUsuariosStore } from '../../stores/useUsuariosStore'
+import { useRolesStore } from '../../stores/useRolesStore'
+import { useLayoutStore } from '../../stores/useLayoutStore'
 import { SelectStyles } from '../../helpers/global'
 // import validator from "validator";
 import Select from 'react-select'
 
 export const ModalUsuarios = () => {
-  const dispatch = useDispatch()
-  const { modalOpen, modalTitle, modalButton, modalAction, loading } = useSelector(
-    (state) => state.ui,
-  )
-  const { usuario, error: errorForm } = useSelector((state) => state.usuarios)
-  const { rolesCombo } = useSelector((state) => state.roles)
+  const { modalOpen, modalTitle, modalButton, modalAction, closeModal } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { usuario, error: errorForm, registerUser, modifyUser } = useUsuariosStore()
+  const { rolesCombo } = useRolesStore()
   const [formValues, setFormValues] = useState(usuario)
   const { id, name, lastname, email, phone } = formValues
   const [rolUsuario, setRolUsuario] = useState(null)
-  const { theme } = useSelector((state) => state.layout)
+  const { theme } = useLayoutStore()
 
   const selectStyles = SelectStyles(theme)
 
@@ -98,28 +97,24 @@ export const ModalUsuarios = () => {
     if (isFormValid()) {
       switch (modalAction) {
         case 'crear':
-          dispatch(
-            registerUser({
-              name,
-              lastname,
-              email,
-              phone,
-              password,
-              role_id: rolUsuario.value,
-            }),
-          )
+          registerUser({
+            name,
+            lastname,
+            email,
+            phone,
+            password,
+            role_id: rolUsuario.value,
+          })
           break
         case 'modificar':
-          dispatch(
-            modifyUser({
-              id,
-              name,
-              lastname,
-              email,
-              phone,
-              role_id: rolUsuario.value,
-            }),
-          )
+          modifyUser({
+            id,
+            name,
+            lastname,
+            email,
+            phone,
+            role_id: rolUsuario.value,
+          })
           break
         default:
           break
@@ -184,7 +179,7 @@ export const ModalUsuarios = () => {
   }
 
   const CloseModal = () => {
-    dispatch(uiCloseModal())
+    closeModal()
   }
 
   return (

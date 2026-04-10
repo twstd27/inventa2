@@ -12,9 +12,9 @@ import {
   CButton,
   CCloseButton,
 } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
-import { getProductos } from '../../actions/productosAction'
-import { getCategorias } from '../../actions/categoriasAction'
+import { useProductosStore } from '../../stores/useProductosStore'
+import { useCategoriasStore } from '../../stores/useCategoriasStore'
+import { useUIStore } from '../../stores/useUIStore'
 import { cilQrCode } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { Check, Filter, Printer, RefreshCcw, Search } from 'lucide-react'
@@ -24,9 +24,9 @@ import { useDebounce } from '../../hooks/useDebounde'
 
 const AdministrarEtiquetas = () => {
   const componentRef = useRef(null)
-  const dispatch = useDispatch()
-  const { productosEtiqueta: productosCargados } = useSelector((state) => state.productos)
-  const { loading } = useSelector((state) => state.ui)
+  const { productosEtiqueta: productosCargados, getProductos } = useProductosStore()
+  const { getCategorias } = useCategoriasStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
   const [procesando, setProcesando] = useState(false)
 
   const [state, setState] = useState({
@@ -38,9 +38,9 @@ const AdministrarEtiquetas = () => {
   const debouncedBuscar = useDebounce(buscar, 300)
 
   useEffect(() => {
-    dispatch(getProductos('etiquetas'))
-    dispatch(getCategorias('combo'))
-  }, [dispatch])
+    getProductos('etiquetas')
+    getCategorias('combo')
+  }, [])
 
   useEffect(() => {
     setState((prev) => ({

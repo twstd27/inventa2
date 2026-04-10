@@ -10,17 +10,15 @@ import {
   CModalTitle,
 } from '@coreui/react'
 import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseModal } from '../../actions/uiAction'
-import { registerBranch, modifyBranch } from '../../actions/sucursalesAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useAuthStore } from '../../stores/useAuthStore'
+import { useSucursalesStore } from '../../stores/useSucursalesStore'
 
 export const ModalSucursales = () => {
-  const dispatch = useDispatch()
-  const { usuario } = useSelector((state) => state.auth)
-  const { modalOpen, modalTitle, modalButton, modalAction, loading } = useSelector(
-    (state) => state.ui,
-  )
-  const { sucursal, error: errorForm } = useSelector((state) => state.sucursales)
+  const { modalOpen, modalTitle, modalButton, modalAction, closeModal } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { usuario } = useAuthStore()
+  const { sucursal, error: errorForm, registerBranch, modifyBranch } = useSucursalesStore()
   const [formValues, setFormValues] = useState(sucursal)
 
   useEffect(() => {
@@ -46,23 +44,19 @@ export const ModalSucursales = () => {
     e.preventDefault()
     if (isFormValid()) {
       if (modalAction === 'crear') {
-        dispatch(
-          registerBranch({
-            name,
-            address,
-            phone,
-            user_id: usuario.id,
-          }),
-        )
+        registerBranch({
+          name,
+          address,
+          phone,
+          user_id: usuario.id,
+        })
       } else {
-        dispatch(
-          modifyBranch({
-            id,
-            name,
-            address,
-            phone,
-          }),
-        )
+        modifyBranch({
+          id,
+          name,
+          address,
+          phone,
+        })
       }
     }
   }
@@ -89,7 +83,7 @@ export const ModalSucursales = () => {
   const { id, name, address, phone } = formValues
 
   const CloseModal = () => {
-    dispatch(uiCloseModal())
+    closeModal()
   }
 
   return (

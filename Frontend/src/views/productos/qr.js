@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
 import { cilCamera } from '@coreui/icons'
-import { getProducto } from '../../actions/productosAction'
-import { useDispatch } from 'react-redux'
+import { useProductosStore } from '../../stores/useProductosStore'
+import { useUIStore } from '../../stores/useUIStore'
 import { ModalDetalleProducto } from '../productos/ModalDetalleProducto'
 import { ModalEtiqueta } from '../productos/ModalEtiqueta'
 import {
@@ -16,13 +16,13 @@ import {
   CButton,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { uiOpenModal } from '../../actions/uiAction'
 
 export default function QRScanner() {
   const [qrResult, setQrResult] = useState(null)
   const [scanning, setScanning] = useState(false)
   const scannerRef = useRef(null)
-  const dispatch = useDispatch()
+  const { getProducto } = useProductosStore()
+  const { openModal } = useUIStore()
 
   useEffect(() => {
     const startScanner = async () => {
@@ -47,7 +47,7 @@ export default function QRScanner() {
           },
           (decodedText) => {
             setQrResult(decodedText)
-            openModal(decodedText)
+            handleOpenModal(decodedText)
             html5QrCode.stop()
             scannerRef.current = null
             setScanning(false)
@@ -89,9 +89,9 @@ export default function QRScanner() {
     }
   }, [scanning])
 
-  const openModal = (code) => {
-    dispatch(getProducto(code))
-    dispatch(uiOpenModal(<span>Info Producto</span>, '', ''))
+  const handleOpenModal = (code) => {
+    getProducto(code)
+    openModal(<span>Info Producto</span>, '', '')
   }
 
   return (

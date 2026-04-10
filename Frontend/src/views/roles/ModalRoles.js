@@ -13,22 +13,20 @@ import {
   CModalTitle,
 } from '@coreui/react'
 import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseModal } from '../../actions/uiAction'
-import { registerRole, modifyRole } from '../../actions/rolesAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useRolesStore } from '../../stores/useRolesStore'
+import { useLayoutStore } from '../../stores/useLayoutStore'
 import Select from 'react-select'
 import { SelectStyles } from '../../helpers/global'
 
 export const ModalRoles = () => {
-  const dispatch = useDispatch()
-  const { modalOpen, modalTitle, modalButton, modalAction, loading } = useSelector(
-    (state) => state.ui,
-  )
-  const { rol, modulos: modulosCombo, error: errorForm } = useSelector((state) => state.roles)
+  const { modalOpen, modalTitle, modalButton, modalAction, closeModal } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { rol, modulos: modulosCombo, error: errorForm, registerRole, modifyRole } = useRolesStore()
   const [permisosRol, setPermisosRol] = useState(null)
   const [formValues, setFormValues] = useState(rol)
   const { id, name } = formValues
-  const { theme } = useSelector((state) => state.layout)
+  const { theme } = useLayoutStore()
 
   const selectStyles = SelectStyles(theme)
 
@@ -62,20 +60,16 @@ export const ModalRoles = () => {
     e.preventDefault()
     if (isFormValid()) {
       if (modalAction === 'crear') {
-        dispatch(
-          registerRole({
-            name,
-            permissions: JSON.stringify(permisosRol),
-          }),
-        )
+        registerRole({
+          name,
+          permissions: JSON.stringify(permisosRol),
+        })
       } else {
-        dispatch(
-          modifyRole({
-            id,
-            name,
-            permissions: JSON.stringify(permisosRol),
-          }),
-        )
+        modifyRole({
+          id,
+          name,
+          permissions: JSON.stringify(permisosRol),
+        })
       }
     }
   }
@@ -115,7 +109,7 @@ export const ModalRoles = () => {
   }
 
   const CloseModal = () => {
-    dispatch(uiCloseModal())
+    closeModal()
   }
 
   return (

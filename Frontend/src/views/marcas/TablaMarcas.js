@@ -20,15 +20,14 @@ import {
   CTableHeaderCell,
   CTableRow,
 } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiOpenDialog, uiOpenModal } from '../../actions/uiAction'
-import { setMarca } from '../../actions/marcasActions'
+import { useUIStore } from '../../stores/useUIStore'
+import { useMarcasStore } from '../../stores/useMarcasStore'
 import CIcon from '@coreui/icons-react'
 import { cilCheckAlt, cilPencil, cilX } from '@coreui/icons'
 
 const TablaMarcas = () => {
-  const dispatch = useDispatch()
-  const { marcas } = useSelector((state) => state.marcas)
+  const { openModal, openDialog } = useUIStore()
+  const { marcas, setMarca } = useMarcasStore()
 
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -57,7 +56,7 @@ const TablaMarcas = () => {
                   color="primary"
                   variant="outline"
                   shape="rounded-0"
-                  onClick={() => openModal(row.original)}
+                  onClick={() => openModalEdit(row.original)}
                 >
                   <CIcon icon={cilPencil} />
                 </CButton>{' '}
@@ -103,7 +102,7 @@ const TablaMarcas = () => {
         ),
       },
     ],
-    [dispatch],
+    [],
   )
 
   const table = useReactTable({
@@ -118,33 +117,29 @@ const TablaMarcas = () => {
     getFilteredRowModel: getFilteredRowModel(),
   })
 
-  const openModal = (marca) => {
-    dispatch(setMarca(marca))
-    dispatch(
-      uiOpenModal(
-        <span>
-          <i className="fa fa-pencil" /> Editar Marca
-        </span>,
-        'Guardar Cambios',
-        'modificar',
-      ),
+  const openModalEdit = (marca) => {
+    setMarca(marca)
+    openModal(
+      <span>
+        <i className="fa fa-pencil" /> Editar Marca
+      </span>,
+      'Guardar Cambios',
+      'modificar',
     )
   }
 
   const toggleAlert = (tipo, marca) => {
-    dispatch(setMarca(marca))
-    dispatch(
-      uiOpenDialog(
-        <span>
-          <i className="fa fa-exclamation-triangle" /> Confirmación
-        </span>,
-        <span>
-          Está seguro que quiere cambiar la marca a estado <strong>{tipo}</strong>?
-        </span>,
-        'Si',
-        'No',
-        tipo,
-      ),
+    setMarca(marca)
+    openDialog(
+      <span>
+        <i className="fa fa-exclamation-triangle" /> Confirmación
+      </span>,
+      <span>
+        Está seguro que quiere cambiar la marca a estado <strong>{tipo}</strong>?
+      </span>,
+      'Si',
+      'No',
+      tipo,
     )
   }
 

@@ -21,12 +21,14 @@ import {
   CAlertLink,
 } from '@coreui/react'
 import Select from 'react-select'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseModal } from '../../actions/uiAction'
-import { DISK } from '../../types/types'
-import { modifyProduct, registerProduct } from '../../actions/productosAction'
-import { getParams } from '../../actions/paramsAction'
-import { getTiposDeCambio } from '../../actions/tipoDeCambioAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useAuthStore } from '../../stores/useAuthStore'
+import { useLayoutStore } from '../../stores/useLayoutStore'
+import { useMarcasStore } from '../../stores/useMarcasStore'
+import { useCategoriasStore } from '../../stores/useCategoriasStore'
+import { useTipoDeCambioStore } from '../../stores/useTipoDeCambioStore'
+import { useProductosStore } from '../../stores/useProductosStore'
+import { useParamsStore } from '../../stores/useParamsStore'
 import CIcon from '@coreui/icons-react'
 import { cilX, cilPen, cilImagePlus, cilCamera } from '@coreui/icons'
 import { SelectStyles } from '../../helpers/global'
@@ -34,19 +36,18 @@ import imageCompression from 'browser-image-compression'
 
 export const ModalProductos = () => {
   const navigate = useNavigate()
-  const dispatch = useDispatch()
-  const { usuario } = useSelector((state) => state.auth)
-  const { modalOpen, modalTitle, modalButton, modalAction, loading } = useSelector(
-    (state) => state.ui,
-  )
+  const { usuario } = useAuthStore()
+  const { modalOpen, modalTitle, modalButton, modalAction, closeModal } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
 
-  const { theme } = useSelector((state) => state.layout)
+  const { theme } = useLayoutStore()
   const selectStyles = SelectStyles(theme)
 
-  const { marcasCombo } = useSelector((state) => state.marcas)
-  const { categoriasCombo } = useSelector((state) => state.categorias)
-  const { tiposDeCambioCombo } = useSelector((state) => state.tipoDeCambio)
-  const { producto, error: errorForm } = useSelector((state) => state.productos)
+  const { marcasCombo } = useMarcasStore()
+  const { categoriasCombo } = useCategoriasStore()
+  const { tiposDeCambioCombo, getTiposDeCambio } = useTipoDeCambioStore()
+  const { producto, error: errorForm, registerProduct, modifyProduct } = useProductosStore()
+  const { getParams } = useParamsStore()
   const [formValues, setFormValues] = useState(producto)
   const [formLoading, setFormLoading] = useState(false)
   const [categoriasProducto, setCategoriasProducto] = useState(null)
@@ -72,6 +73,8 @@ export const ModalProductos = () => {
     errCategories: '',
     errBrand: '',
   })
+
+  const DISK = import.meta.env.VITE_DISK_URL
 
   const getGlobalExchangeRateId = (p) => parseInt(p.find((x) => x.name === 'TipoCambio')?.value) || null
   const getGlobalOption = (combo, globalId) =>
@@ -141,7 +144,7 @@ export const ModalProductos = () => {
   useEffect(() => {
     const fetchParams = async () => {
       try {
-        const data = await dispatch(getParams())
+        const data = await getParams()
         setParams(data)
       } catch (error) {
         console.error('Error fetching params:', error)
@@ -149,8 +152,8 @@ export const ModalProductos = () => {
     }
 
     fetchParams()
-    dispatch(getTiposDeCambio('combo'))
-  }, [dispatch])
+    getTiposDeCambio('combo')
+  }, [])
 
   // Recalcula precios cuando cambian params, tipo de cambio o los campos relevantes
   useEffect(() => {
@@ -328,55 +331,51 @@ export const ModalProductos = () => {
       })
       switch (modalAction) {
         case 'crear':
-          dispatch(
-            registerProduct(
-              {
-                name,
-                code,
-                description,
-                price,
-                price_type,
-                price_discount,
-                price_wholesome,
-                cost,
-                price_percent,
-                wholesome_percent,
-                discount_percent,
-                cost_usd,
-                exchange_rate_id: exchange_rate_id || null,
-                user_id: usuario.id,
-                brand_id: marcaProducto.value,
-                categories: productCategories,
-              },
-              tempImagenesData,
-            ),
+          registerProduct(
+            {
+              name,
+              code,
+              description,
+              price,
+              price_type,
+              price_discount,
+              price_wholesome,
+              cost,
+              price_percent,
+              wholesome_percent,
+              discount_percent,
+              cost_usd,
+              exchange_rate_id: exchange_rate_id || null,
+              user_id: usuario.id,
+              brand_id: marcaProducto.value,
+              categories: productCategories,
+            },
+            tempImagenesData,
           )
           break
         case 'modificar':
           const diferencia = producto.images.filter((x) => !imagenes.includes(x))
-          dispatch(
-            modifyProduct(
-              {
-                id,
-                name,
-                code,
-                description,
-                price,
-                price_type,
-                price_discount,
-                price_wholesome,
-                cost,
-                price_percent,
-                wholesome_percent,
-                discount_percent,
-                cost_usd,
-                exchange_rate_id: exchange_rate_id || null,
-                brand_id: marcaProducto.value,
-                categories: productCategories,
-              },
-              tempImagenesData,
-              diferencia,
-            ),
+          modifyProduct(
+            {
+              id,
+              name,
+              code,
+              description,
+              price,
+              price_type,
+              price_discount,
+              price_wholesome,
+              cost,
+              price_percent,
+              wholesome_percent,
+              discount_percent,
+              cost_usd,
+              exchange_rate_id: exchange_rate_id || null,
+              brand_id: marcaProducto.value,
+              categories: productCategories,
+            },
+            tempImagenesData,
+            diferencia,
           )
           break
         default:
@@ -516,7 +515,7 @@ export const ModalProductos = () => {
   const globalOption = getGlobalOption(tiposDeCambioCombo, globalExchangeRateId)
 
   const CloseModal = () => {
-    dispatch(uiCloseModal())
+    closeModal()
   }
 
   return (

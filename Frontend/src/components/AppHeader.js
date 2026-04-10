@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react'
 import { NavLink } from 'react-router-dom'
-import { useSelector, useDispatch } from 'react-redux'
 import {
   CContainer,
   CDropdown,
@@ -28,26 +27,27 @@ import {
 import { AppBreadcrumb } from './index'
 import { AppHeaderDropdown } from './header/index'
 
-import { toggleSidebar, changeTheme } from '../actions/layoutAction'
+import { useLayoutStore } from '../stores/useLayoutStore'
 
 const AppHeader = () => {
   const headerRef = useRef()
   const { colorMode, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
 
-  const dispatch = useDispatch()
-  const { sidebarShow } = useSelector((state) => state.layout)
+  const { sidebarShow, toggleSidebar, changeTheme } = useLayoutStore()
 
   useEffect(() => {
-    document.addEventListener('scroll', () => {
+    const handleScroll = () => {
       headerRef.current &&
         headerRef.current.classList.toggle('shadow-sm', document.documentElement.scrollTop > 0)
-    })
+    }
+    document.addEventListener('scroll', handleScroll)
+    return () => document.removeEventListener('scroll', handleScroll)
   }, [])
 
   //TODO: revisar el cambio de tema y posiblemente hacerlo persistente en el login
 
   const handleToggleSidebar = () => {
-    dispatch(toggleSidebar(!sidebarShow))
+    toggleSidebar(!sidebarShow)
   }
 
   return (
@@ -79,7 +79,7 @@ const AppHeader = () => {
                   type="button"
                   onClick={() => {
                     setColorMode('light')
-                    dispatch(changeTheme('light'))
+                    changeTheme('light')
                   }}
                 >
                   <CIcon className="me-2" icon={cilSun} size="lg" /> Light
@@ -91,7 +91,7 @@ const AppHeader = () => {
                   type="button"
                   onClick={() => {
                     setColorMode('dark')
-                    dispatch(changeTheme('dark'))
+                    changeTheme('dark')
                   }}
                 >
                   <CIcon className="me-2" icon={cilMoon} size="lg" /> Dark
@@ -103,7 +103,7 @@ const AppHeader = () => {
                   type="button"
                   onClick={() => {
                     setColorMode('auto')
-                    dispatch(changeTheme('auto'))
+                    changeTheme('auto')
                   }}
                 >
                   <CIcon className="me-2" icon={cilContrast} size="lg" /> Auto

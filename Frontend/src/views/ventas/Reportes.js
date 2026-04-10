@@ -10,22 +10,22 @@ import {
   CTabPanel,
   CTabContent,
 } from '@coreui/react'
-import { useDispatch } from 'react-redux'
+import { useVentasStore } from '../../stores/useVentasStore'
+import { useSucursalesStore } from '../../stores/useSucursalesStore'
 import TablaVentas from './TablaVentas'
-import { getVentas } from '../../actions/ventasAction'
 import { ModalVentas } from './ModalVentas'
 import { DialogVentas } from './DialogVentas'
 import Diario from './Diario'
-import { getSucursales } from '../../actions/sucursalesAction'
 import { CircleDollarSign, Tag } from 'lucide-react'
 
-const AdministrarMarcas = () => {
-  const dispatch = useDispatch()
+const Reportes = () => {
+  const { getVentas } = useVentasStore()
+  const { getSucursales } = useSucursalesStore()
 
   useEffect(() => {
-    dispatch(getVentas())
-    dispatch(getSucursales('combo'))
-  }, [dispatch])
+    getVentas()
+    getSucursales('combo')
+  }, [])
 
   return (
     <CRow>
@@ -59,4 +59,4 @@ const AdministrarMarcas = () => {
   )
 }
 
-export default AdministrarMarcas
+export default Reportes

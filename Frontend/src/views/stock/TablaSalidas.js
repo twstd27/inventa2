@@ -19,52 +19,45 @@ import {
   CTableHeaderCell,
   CTableRow,
 } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiOpenDialog, uiOpenModal } from '../../actions/uiAction'
-
-import { setEntrada } from '../../actions/stockAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useStockStore } from '../../stores/useStockStore'
+import { useLayoutStore } from '../../stores/useLayoutStore'
 import { colorBadge } from '../../helpers/global'
 import CIcon from '@coreui/icons-react'
 import { cilCheckAlt, cilPencil, cilX, cilWarning } from '@coreui/icons'
-import { getSalidas } from '../../actions/stockAction'
 
 const TablaSalidas = () => {
-  const dispatch = useDispatch()
-  const { salidas, paginaActual, ultimaPagina, totalSalidas } = useSelector((state) => state.stock)
+  const { openModal, openDialog } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { salidas, paginaActual, ultimaPagina, totalSalidas, setEntrada, getSalidas } = useStockStore()
+  const { theme } = useLayoutStore()
 
-  const { theme } = useSelector((state) => state.layout)
-  const { loading } = useSelector((state) => state.ui)
-
-  const openModal = (registro) => {
-    dispatch(setEntrada(registro))
-    dispatch(
-      uiOpenModal(
-        <span>
-          <CIcon icon={cilPencil} /> Editar salida de inventario
-        </span>,
-        'Guardar Cambios',
-        {
-          action: 'modificar',
-          type: 'salida',
-        },
-      ),
+  const openModal_ = (registro) => {
+    setEntrada(registro)
+    openModal(
+      <span>
+        <CIcon icon={cilPencil} /> Editar salida de inventario
+      </span>,
+      'Guardar Cambios',
+      {
+        action: 'modificar',
+        type: 'salida',
+      },
     )
   }
 
   const toggleAlert = (accion, registro) => {
-    dispatch(setEntrada(registro))
-    dispatch(
-      uiOpenDialog(
-        <span>
-          <CIcon icon={cilWarning} /> Confirmación
-        </span>,
-        <span>
-          Está seguro que quiere cambiar la salida de inventario a estado <strong>{accion}</strong>?
-        </span>,
-        'Si',
-        'No',
-        accion,
-      ),
+    setEntrada(registro)
+    openDialog(
+      <span>
+        <CIcon icon={cilWarning} /> Confirmación
+      </span>,
+      <span>
+        Está seguro que quiere cambiar la salida de inventario a estado <strong>{accion}</strong>?
+      </span>,
+      'Si',
+      'No',
+      accion,
     )
   }
 
@@ -79,8 +72,8 @@ const TablaSalidas = () => {
   }
 
   useEffect(() => {
-    dispatch(getSalidas(pagination.pageIndex, pagination.pageSize))
-  }, [dispatch, pagination])
+    getSalidas(pagination.pageIndex, pagination.pageSize)
+  }, [pagination])
 
   const columns = useMemo(
     () => [
@@ -137,7 +130,7 @@ const TablaSalidas = () => {
                   variant="outline"
                   shape="square"
                   onClick={() => {
-                    openModal(row.original)
+                    openModal_(row.original)
                   }}
                 >
                   <CIcon icon={cilPencil} />
@@ -169,7 +162,7 @@ const TablaSalidas = () => {
         ),
       },
     ],
-    [dispatch],
+    [],
   )
 
   const table = useReactTable({

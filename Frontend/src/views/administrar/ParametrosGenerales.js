@@ -22,46 +22,47 @@ import {
   CToastHeader,
 } from '@coreui/react'
 import Select from 'react-select'
-import { useDispatch, useSelector } from 'react-redux'
-import { getPrecios } from '../../actions/preciosAction'
-import { getParams, modifyParam } from '../../actions/paramsAction'
-import { getTiposDeCambio } from '../../actions/tipoDeCambioAction'
 import { SelectStyles } from '../../helpers/global'
+import { useTipoDeCambioStore } from '../../stores/useTipoDeCambioStore'
+import { useLayoutStore } from '../../stores/useLayoutStore'
+import { usePreciosStore } from '../../stores/usePreciosStore'
+import { useParamsStore } from '../../stores/useParamsStore'
 
 import CIcon from '@coreui/icons-react'
 import { cilCog, cilSave } from '@coreui/icons'
 
 const ParametrosGenerales = () => {
-  const dispatch = useDispatch()
   const [toast, addToast] = useState()
   const toaster = useRef(null)
   const [preciosCombo, setPreciosCombo] = useState([])
   const [params, setParams] = useState([])
   const [formLoading, setFormLoading] = useState(true)
-  const { tiposDeCambioCombo } = useSelector((state) => state.tipoDeCambio)
-  const { theme } = useSelector((state) => state.layout)
+  const { tiposDeCambioCombo, getTiposDeCambio } = useTipoDeCambioStore()
+  const { theme } = useLayoutStore()
   const selectStyles = SelectStyles(theme)
+  const { getPrecios } = usePreciosStore()
+  const { getParams, modifyParam } = useParamsStore()
 
   useEffect(() => {
     setFormLoading(true)
     const fetchPrecios = async () => {
       try {
-        const data = await dispatch(getPrecios('combo'))
+        const data = await getPrecios('combo')
         setPreciosCombo(data)
       } catch (error) {
         console.error('Error fetching precios:', error)
       }
     }
     fetchPrecios()
-    dispatch(getTiposDeCambio('combo'))
+    getTiposDeCambio('combo')
     setFormLoading(false)
-  }, [dispatch])
+  }, [])
 
   useEffect(() => {
     setFormLoading(true)
     const fetchParams = async () => {
       try {
-        const data = await dispatch(getParams())
+        const data = await getParams()
         setParams(data)
       } catch (error) {
         console.error('Error fetching params:', error)
@@ -69,7 +70,7 @@ const ParametrosGenerales = () => {
     }
     fetchParams()
     setFormLoading(false)
-  }, [dispatch])
+  }, [])
 
   const handleChange = async (e) => {
     if (formLoading) return
@@ -78,9 +79,7 @@ const ParametrosGenerales = () => {
     const idParam = parseInt(name.split('_')[1])
 
     try {
-      await dispatch(
-        modifyParam(idParam, { value: type === 'checkbox' ? (checked ? '1' : '0') : value }),
-      )
+      await modifyParam(idParam, { value: type === 'checkbox' ? (checked ? '1' : '0') : value })
       addToast(saveToast('success', 'Parámetro modificado'))
     } catch (error) {
       console.error('Error fetching params:', error)
@@ -102,7 +101,7 @@ const ParametrosGenerales = () => {
     if (!tipoCambioParam) return
 
     try {
-      await dispatch(modifyParam(tipoCambioParam.id, { value: String(selected.value_id) }))
+      await modifyParam(tipoCambioParam.id, { value: String(selected.value_id) })
       addToast(saveToast('success', 'Tipo de cambio actualizado'))
     } catch (error) {
       addToast(saveToast('danger', 'Error al actualizar tipo de cambio'))

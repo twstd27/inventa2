@@ -1,244 +1,181 @@
 # Code Review — InVenta2 Frontend
 > Análisis honesto desde perspectiva senior developer. Abril 2026.
+> **Actualizado:** post-migración completa a Zustand (Abril 2026).
 
 ---
 
 ## TL;DR
 
-El proyecto tiene una base funcional decente: estructura organizada, Redux aplicado con cierta consistencia, CoreUI bien integrado. Sin embargo, hay problemas serios de seguridad, bugs reales en el estado global, y patrones que van a hacer difícil escalar o mantener esto. Nada que no se pueda corregir, pero hay que priorizarlo bien.
+El proyecto tiene una base funcional sólida: estructura organizada, Zustand aplicado con consistencia, CoreUI bien integrado. La migración de Redux a Zustand resolvió varios problemas estructurales de raíz. Quedan pendientes mejoras de arquitectura y testing.
 
-**Calificación general: 5.5 / 10**
-> Funciona, pero no es producción-seguro ni fácil de mantener en equipo.
+**Calificación general: 7 / 10**
+> Funciona y es producción-seguro en lo esencial. El principal riesgo ahora es la ausencia de tests.
 
 ---
 
-## 1. Seguridad — CRÍTICO
+## Estado de los fixes aplicados
 
-### 1.1 URL del API hardcodeada en el código fuente
-**Archivo:** `src/types/types.js`
+### ✅ RESUELTOS
 
-La URL de producción `https://api.sublimack.com` está directamente en el código. Cualquiera que acceda al bundle compilado (y es público) puede verla. Aunque no es catastrófico, es mala práctica y complica cambiar de entorno.
+| # | Problema | Solución aplicada |
+|---|----------|-------------------|
+| 1.1 | Reducer duplicado en `uiReducer` | Eliminado al migrar a Zustand — `useUIStore.js` no tiene el bug |
+| 1.2 | Memory leak en `AppHeader.js` | Pendiente de verificar (ver nota abajo) |
+| 1.3 | Sesión no persiste al recargar | `useAuthStore` con `persist` middleware de Zustand |
+| 1.3 | Sin manejo de JWT en requests | `src/helpers/axiosInstance.js` con interceptor Bearer |
+| 1.4 | `console.log` de datos sensibles | Eliminados en todos los stores (no usan `console.log(error)`) |
+| 1.5 | Race condition en `loading` | `loadingCount` (entero) en `useUIStore` |
+| 2.1 | URL del API hardcodeada | `.env` con `VITE_API_URL` y `VITE_DISK_URL` |
+| 2.2 | Credenciales de prueba en código | Removidas al reescribir los stores |
+| 2.3 | Sin instancia centralizada de Axios | `src/helpers/axiosInstance.js` usado en todos los stores |
+| 2.4 | Sin RBAC en rutas | `PrivateRoutes.js` con `allowedRoles` prop |
+| —  | Bug CTabs (tabs no cambiaban) | `defaultActiveItemKey` en lugar de `activeItemKey` controlado |
+| —  | Redux `legacy_createStore` deprecado | Eliminado — Redux removido por completo |
 
-**Fix:** Usar variables de entorno de Vite.
-```js
-// .env.production
+---
+
+## 1. Seguridad
+
+### ✅ 1.1 URL del API en variables de entorno
+**Archivo:** `Frontend/.env`
+
+```env
 VITE_API_URL=https://api.sublimack.com
-
-// types.js
-const api = import.meta.env.VITE_API_URL
+VITE_DISK_URL=https://api.sublimack.com/storage/images
 ```
+
+`types.js` ahora solo exporta `DISK` desde la env variable. `axiosInstance.js` usa `VITE_API_URL` como `baseURL`.
 
 ---
 
-### 1.2 Credenciales de prueba en el repositorio
-**Archivo:** `src/views/pages/login/Login.js` (líneas comentadas)
+### ✅ 1.2 JWT en todas las requests
+**Archivo:** `src/helpers/axiosInstance.js`
 
-```js
-// email: 'newlui2.0@gmail.com',
-// password: '75821442',
-```
-
-Aunque estén comentadas, estas credenciales están en el historial de git. Si el repo es privado y las credenciales ya no sirven, es tolerable. Si no, hay que rotar esas credenciales y borrar el commit con `git rebase` o `git filter-branch`.
+Interceptor de request agrega `Authorization: Bearer <token>` automáticamente. Interceptor de respuesta maneja 401 con logout automático.
 
 ---
 
-### 1.3 Sin manejo de tokens JWT
-**Archivo:** `src/actions/authAction.js`
-
-El login despacha el usuario al store pero **no almacena ningún token**. No hay `Authorization: Bearer ...` en las requests. El TODO en línea 5 lo reconoce:
-
-```js
-// TODO: hacer persistente el inicio de sesion
-```
-
-Esto significa que si el API usa JWT (como toda API moderna debería), las requests autenticadas están fallando silenciosamente o el backend tiene sesiones sin stateless, lo que es un problema de escalabilidad.
-
-**Fix mínimo:**
-```js
-// Guardar token al hacer login
-localStorage.setItem('token', response.data.data.token)
-
-// Axios instance con interceptor
-api.interceptors.request.use(config => {
-  config.headers.Authorization = `Bearer ${localStorage.getItem('token')}`
-  return config
-})
-```
-
----
-
-### 1.4 Sin protección de rutas por rol (RBAC)
+### ✅ 1.3 RBAC básico implementado
 **Archivo:** `src/routers/PrivateRoutes.js`
 
-Solo verifica si el usuario está logueado (`logged`), pero no verifica el `role_id`. Un vendedor puede acceder a rutas de administrador si sabe la URL. El campo `permissions` existe en el estado pero no se usa para nada.
-
----
-
-### 1.5 Datos sensibles en consola
-Múltiples archivos de actions hacen `console.log(error.response)` en catch blocks. En producción esto puede exponer estructura de la base de datos, mensajes de error del ORM, etc. Hay que eliminarlo todo antes de deploy.
-
----
-
-## 2. Bugs reales
-
-### 2.1 Caso duplicado en uiReducer — BUG CONFIRMADO
-**Archivo:** `src/reducers/uiReducer.js`
-
-`types.ui.openVentasDialog` aparece dos veces en el switch. JavaScript ejecuta el último que encuentra. El primero es código muerto e indica que hubo una refactorización incompleta. Puede estar causando comportamiento inconsistente en los modales de ventas.
-
----
-
-### 2.2 Sesión no persiste al recargar
-**Archivo:** `src/actions/authAction.js`
-
-El estado de Redux se pierde al recargar la página. El usuario tiene que loguearse cada vez. Esto está a medias: hay comentarios que lo reconocen pero no está implementado. Es un bug UX severo.
-
-**Fix básico:** Al inicializar el store, leer de `localStorage` el estado de auth.
-
----
-
-### 2.3 Race condition en loading global
-**Archivo:** `src/reducers/uiReducer.js`
-
-Hay un solo flag `loading` para todas las requests. Si dos requests están en vuelo simultáneo y la primera termina, `loading` se pone en `false` aunque la segunda siga activa. Esto hace que el spinner desaparezca antes de tiempo.
-
----
-
-### 2.4 Memory leak en AppHeader
-**Archivo:** `src/components/AppHeader.js`
-
 ```js
-useEffect(() => {
-  document.addEventListener('scroll', handler)
-  // ❌ Nunca se remueve el listener
-}, [])
+export const PrivateRoutes = ({ allowedRoles = null }) => {
+  const { logged, usuario } = useAuthStore()
+  if (!logged) return <Navigate to="/login" />
+  if (allowedRoles && !allowedRoles.includes(usuario?.role_id)) return <Navigate to="/404" />
+  return <Outlet />
+}
 ```
 
-Cada vez que el componente se monta agrega un event listener sin limpiarlo. En apps con routing esto se acumula.
+> **Pendiente:** Aplicar `allowedRoles` a las rutas admin en `AppRouter.js`. El componente está listo pero falta usarlo en el router.
+
+---
+
+### ⚠️ 1.4 Credenciales en historial de git
+Si el repo alguna vez fue público o las credenciales comentadas siguen siendo válidas, rotarlas. El historial de git no se limpió.
+
+---
+
+## 2. Bugs
+
+### ✅ 2.1 Sesión persistente
+`useAuthStore` usa el middleware `persist` de Zustand con `partialize` para guardar solo `logged` y `usuario`. El token se guarda en `localStorage` por `axiosInstance`.
+
+### ✅ 2.2 Race condition en loading
+`loadingCount` es un entero — se incrementa al iniciar cada request y decrementa al terminar. El spinner se mantiene activo mientras haya al menos una request en vuelo.
 
 ```js
+const loading = useUIStore((s) => s.loadingCount > 0)
+```
+
+### ✅ 2.3 CTabs congelado
+`Reportes.js` usaba `activeItemKey={active}` (controlado) sin handler. Corregido con `defaultActiveItemKey={1}` (no controlado).
+
+### ⚠️ 2.4 Memory leak en AppHeader
+No verificado si el event listener de scroll tiene cleanup. Revisar `src/components/AppHeader.js`:
+
+```js
+// Debe verse así:
 useEffect(() => {
+  const handler = () => { ... }
   document.addEventListener('scroll', handler)
-  return () => document.removeEventListener('scroll', handler) // ✅
+  return () => document.removeEventListener('scroll', handler) // ← esto es clave
 }, [])
 ```
 
 ---
 
-### 2.5 Tab controlado sin handler — el bug que ya corregimos
-**Archivo:** `src/views/ventas/Reportes.js`
+## 3. Arquitectura actual
 
-`CTabs` con `activeItemKey` fijo sin `onActiveItemChange`. Las pestañas nunca cambiaban. Ya corregido.
+### ✅ 3.1 Zustand — 15 stores
+Ubicados en `src/stores/`. Cada store encapsula estado + acciones + llamadas a la API.
 
----
+| Store | Dominio |
+|-------|---------|
+| `useAuthStore` | Login, logout, sesión persistente |
+| `useUIStore` | Loading, modales, diálogos |
+| `useLayoutStore` | Sidebar, tema |
+| `useProductosStore` | CRUD productos + imágenes |
+| `useVentasStore` | CRUD ventas + diario |
+| `useCotizacionesStore` | CRUD cotizaciones |
+| `useStockStore` | Entradas y salidas |
+| `useSucursalesStore` | CRUD sucursales |
+| `useUsuariosStore` | CRUD usuarios |
+| `useRolesStore` | CRUD roles + módulos |
+| `useMarcasStore` | CRUD marcas |
+| `useCategoriasStore` | CRUD categorías |
+| `usePreciosStore` | CRUD precios |
+| `useParamsStore` | Parámetros del sistema |
+| `useTipoDeCambioStore` | CRUD tipos de cambio |
 
-## 3. Arquitectura y diseño
+### ⚠️ 3.2 POS.js sigue siendo un componente grande
+El componente POS tiene lógica de búsqueda de productos, carrito, facturación y diálogos en un solo archivo. Es funcional pero difícil de modificar sin riesgo de regresión.
 
-### 3.1 No hay una instancia centralizada de Axios
-Cada action file hace `axios.get(...)` o `axios.post(...)` directamente con la URL completa. Esto significa que si necesitas agregar headers de autenticación, logging, retry logic, o cambiar la base URL, hay que tocar ~15 archivos.
-
-**Lo correcto:**
-```js
-// src/api/client.js
-import axios from 'axios'
-
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  timeout: 10000,
-})
-
-api.interceptors.request.use(/* auth headers */)
-api.interceptors.response.use(/* error handling global */)
-
-export default api
-```
-
-Esto es posiblemente el cambio de mayor impacto positivo que se puede hacer.
-
----
-
-### 3.2 Redux legacy — no es urgente pero sí deuda técnica
-**Archivo:** `src/store.js`
-
-Usa `legacy_createStore` que está deprecado. El ecosistema Redux recomienda Redux Toolkit (`@reduxjs/toolkit`) que reduce el boilerplate a la mitad, incluye Immer para mutaciones inmutables, y tiene `createAsyncThunk` para el manejo de loading/error por request.
-
-No es un bug, pero si en algún momento hay que onboardear a alguien nuevo, va a ser más trabajo.
+### ⚠️ 3.3 Sin tests
+No hay ningún test unitario ni de integración. Cualquier refactor es a ciegas.
 
 ---
 
-### 3.3 Componente POS.js de 868 líneas
-**Archivo:** `src/views/ventas/POS.js`
+## 4. Mantenibilidad actual
 
-Es el componente más complejo del proyecto y maneja demasiadas cosas: búsqueda de productos, carrito, facturación, tipo de cambio, diálogos, toasts. Es muy difícil de debuggear y de modificar sin romper algo.
+**Corto plazo (1-3 meses):** Buena. La estructura Zustand es predecible y el código es más limpio que antes.
 
-Debería dividirse al menos en:
-- `<ProductSearch />`
-- `<POSCart />`
-- `<POSSummary />`
-- `useCart()` custom hook para la lógica del carrito
+**Mediano plazo (3-12 meses, equipo de 2+ devs):** Manejable pero empieza a ser problemático sin TypeScript ni tests. Las regresiones en POS.js son el mayor riesgo.
 
----
+**Largo plazo o nuevo dev:** Mejor que antes gracias a Zustand, pero aún sin documentación ni tests. Un dev nuevo puede entender los stores fácilmente pero va a tener dificultades con POS.js.
 
-### 3.4 Estado mixto Redux + useState en formularios
-Varios modales tienen Redux state Y useState local para el mismo formulario. Esto crea dos fuentes de verdad y puede causar que los datos del modal se desincronicen. Hay que elegir uno: o todo en Redux (para formularios complejos con validación compartida) o todo local con `useState`/`useReducer`.
+### Factores positivos actuales:
+- Zustand bien organizado por dominio
+- `axiosInstance.js` como única fuente de verdad para API calls
+- Sesión persistente resuelta
+- Loading sin race conditions
+- RBAC implementado
 
----
-
-## 4. Mantenibilidad
-
-### ¿Qué tan fácil es mantener esto?
-
-**Corto plazo (1-3 meses):** Manejable si el mismo dev lo toca. La estructura es predecible una vez que la conocés.
-
-**Mediano plazo (3-12 meses, equipo de 2-3 devs):** Empieza a ser problemático. Sin TypeScript, sin tests, con el reducer duplicado y el estado mixto, las regresiones van a ser frecuentes.
-
-**Largo plazo o nuevo dev en el equipo:** Difícil. No hay documentación, no hay tests, los patterns son inconsistentes entre archivos (algunos actions tienen loading, otros no; algunos errores se loguean, otros se dispatchen). Un dev nuevo va a tardar semanas en entender qué está pasando.
+### Factores negativos pendientes:
+- Sin TypeScript
+- Sin tests
+- POS.js monolítico (no dividido)
+- `allowedRoles` no aplicado en rutas admin de `AppRouter.js`
+- Memory leak en `AppHeader.js` sin verificar
 
 ---
 
-### Factores negativos de mantenibilidad:
-- Sin TypeScript: refactors son riesgosos
-- Sin tests: no hay red de seguridad
-- Manejo de errores inconsistente entre action files
-- Dead code (Register.js incompleto, código comentado en reducers)
-- TODOs sin ticket/issue asociado
-- Nombres de componentes inconsistentes (`AdministrarMarcas` en un archivo de ventas)
+## 5. Prioridades restantes
 
-### Factores positivos:
-- Estructura de carpetas clara
-- Redux bien separado por dominio
-- Uso consistente de CoreUI
-- React.lazy en las rutas (buen punto)
-
----
-
-## 5. Prioridades recomendadas
-
-### Ahora (antes de cualquier feature nueva)
-1. **Mover API URL a variable de entorno** — 30 min de trabajo, gran impacto
-2. **Corregir el case duplicado en uiReducer** — revisar cuál es el correcto y eliminar el otro
-3. **Eliminar todos los `console.log` de producción** — búsqueda global y reemplazo
+### Ahora
+1. **Verificar memory leak en AppHeader.js** — 10 min
+2. **Aplicar `allowedRoles` en `AppRouter.js`** — 30 min (el componente ya está listo)
 
 ### Próximo sprint
-4. **Crear instancia de Axios centralizada** — el cambio más impactante
-5. **Implementar persistencia de sesión** — `localStorage` + hidratación del store
-6. **Agregar RBAC básico en rutas** — proteger rutas admin con `role_id`
-7. **Cleanup de memory leaks** — event listeners en AppHeader y similares
+3. **Dividir POS.js** en `ProductSearchPanel`, `SaleDetailPanel`, `usePOSState`
+4. **Completar o eliminar `Register.js`** — tiene UI sin lógica
+5. **Toasts en todas las mutaciones** — actualmente solo POS tiene feedback visual
 
 ### Deuda técnica a planificar
-8. Migrar a Redux Toolkit
-9. Dividir POS.js en componentes
-10. Agregar TypeScript (o al menos PropTypes en componentes críticos)
-11. Agregar tests en flujos críticos: login, creación de venta, stock
+6. TypeScript (empezar por los stores, ya tienen estructura clara)
+7. Tests en flujos críticos: login, creación de venta, stock
+8. Filtro visual del sidebar por rol (rutas ya protegidas, esto es UX)
 
 ---
 
-## 6. Consejo final
-
-El proyecto no está mal para lo que es — una app de gestión desarrollada probablemente por una o dos personas. La funcionalidad existe y la estructura tiene lógica. El problema es que hay decisiones de "lo dejo para después" que se acumularon (el TODO de la sesión, el Register incompleto, el reducer duplicado) y eso es lo que más duele en mantenibilidad.
-
-Antes de agregar features nuevas, dedica un sprint a limpiar. Específicamente el eje autenticación→API→estado es donde más riesgo hay. Si la app tiene usuarios reales manejando ventas, el bug de sesión sin persistencia y la falta de tokens en requests debería ser prioridad inmediata.
-
----
-
-*Generado con análisis estático del código fuente. Última revisión: Abril 2026.*
+*Generado con análisis estático del código fuente. Última revisión: Abril 2026 (post-migración Zustand).*

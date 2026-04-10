@@ -11,17 +11,15 @@ import {
   CFormTextarea,
 } from '@coreui/react'
 import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseModal } from '../../actions/uiAction'
-import { modifyCategory, registerCategory } from '../../actions/categoriasAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useAuthStore } from '../../stores/useAuthStore'
+import { useCategoriasStore } from '../../stores/useCategoriasStore'
 
 export const ModalCategorias = () => {
-  const dispatch = useDispatch()
-  const { usuario } = useSelector((state) => state.auth)
-  const { modalOpen, modalTitle, modalButton, modalAction, loading } = useSelector(
-    (state) => state.ui,
-  )
-  const { categoria, error: errorForm } = useSelector((state) => state.categorias)
+  const { usuario } = useAuthStore()
+  const { modalOpen, modalTitle, modalButton, modalAction, closeModal } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { categoria, error: errorForm, registerCategory, modifyCategory } = useCategoriasStore()
   const [formValues, setFormValues] = useState(categoria)
 
   useEffect(() => {
@@ -47,21 +45,17 @@ export const ModalCategorias = () => {
     e.preventDefault()
     if (isFormValid()) {
       if (modalAction === 'crear') {
-        dispatch(
-          registerCategory({
-            name,
-            description,
-            user_id: usuario.id,
-          }),
-        )
+        registerCategory({
+          name,
+          description,
+          user_id: usuario.id,
+        })
       } else {
-        dispatch(
-          modifyCategory({
-            id,
-            name,
-            description,
-          }),
-        )
+        modifyCategory({
+          id,
+          name,
+          description,
+        })
       }
     }
   }
@@ -88,7 +82,7 @@ export const ModalCategorias = () => {
   const { id, name, description } = formValues
 
   const CloseModal = () => {
-    dispatch(uiCloseModal())
+    closeModal()
   }
 
   return (

@@ -20,15 +20,14 @@ import {
   CTableHeaderCell,
   CTableRow,
 } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiOpenDialog, uiOpenModal } from '../../actions/uiAction'
-import { setCategoria } from '../../actions/categoriasAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useCategoriasStore } from '../../stores/useCategoriasStore'
 import CIcon from '@coreui/icons-react'
 import { cilCheckAlt, cilPencil, cilX, cilWarning } from '@coreui/icons'
 
 const TablaCategorias = () => {
-  const dispatch = useDispatch()
-  const { categorias } = useSelector((state) => state.categorias)
+  const { openModal, openDialog } = useUIStore()
+  const { categorias, setCategoria } = useCategoriasStore()
 
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -57,7 +56,7 @@ const TablaCategorias = () => {
                   color="primary"
                   variant="outline"
                   shape="rounded-0"
-                  onClick={() => openModal(row.original)}
+                  onClick={() => openModalEdit(row.original)}
                 >
                   <CIcon icon={cilPencil} />
                 </CButton>{' '}
@@ -103,7 +102,7 @@ const TablaCategorias = () => {
         ),
       },
     ],
-    [dispatch],
+    [],
   )
 
   const table = useReactTable({
@@ -118,33 +117,29 @@ const TablaCategorias = () => {
     getFilteredRowModel: getFilteredRowModel(),
   })
 
-  const openModal = (categoria) => {
-    dispatch(setCategoria(categoria))
-    dispatch(
-      uiOpenModal(
-        <span>
-          <CIcon icon={cilPencil} /> Editar Categoria
-        </span>,
-        'Guardar Cambios',
-        'modificar',
-      ),
+  const openModalEdit = (categoria) => {
+    setCategoria(categoria)
+    openModal(
+      <span>
+        <CIcon icon={cilPencil} /> Editar Categoria
+      </span>,
+      'Guardar Cambios',
+      'modificar',
     )
   }
 
   const toggleAlert = (tipo, categoria) => {
-    dispatch(setCategoria(categoria))
-    dispatch(
-      uiOpenDialog(
-        <span>
-          <CIcon icon={cilWarning} /> Confirmación
-        </span>,
-        <span>
-          Está seguro que quiere cambiar la categoria a estado <strong>{tipo}</strong>?
-        </span>,
-        'Si',
-        'No',
-        tipo,
-      ),
+    setCategoria(categoria)
+    openDialog(
+      <span>
+        <CIcon icon={cilWarning} /> Confirmación
+      </span>,
+      <span>
+        Está seguro que quiere cambiar la categoria a estado <strong>{tipo}</strong>?
+      </span>,
+      'Si',
+      'No',
+      tipo,
     )
   }
 

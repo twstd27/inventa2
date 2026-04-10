@@ -1,11 +1,9 @@
 import React from 'react'
 import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseDialog } from '../../actions/uiAction'
-import { deleteCategory, restoreCategory } from '../../actions/categoriasAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useCategoriasStore } from '../../stores/useCategoriasStore'
 
 export const DialogCategorias = () => {
-  const dispatch = useDispatch()
   const {
     dialogOpen,
     dialogTitle,
@@ -13,20 +11,17 @@ export const DialogCategorias = () => {
     dialogButtonOk,
     dialogButtonCancel,
     dialogAction,
-    loading,
-  } = useSelector((state) => state.ui)
-  const { categoria } = useSelector((state) => state.categorias)
+    closeDialog,
+  } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { categoria, deleteCategory, restoreCategory } = useCategoriasStore()
 
   const handleClick = () => {
     if (dialogAction === 'activo') {
-      dispatch(restoreCategory(categoria))
+      restoreCategory(categoria)
     } else {
-      dispatch(deleteCategory(categoria))
+      deleteCategory(categoria)
     }
-  }
-
-  const closeDialog = () => {
-    dispatch(uiCloseDialog())
   }
 
   return (

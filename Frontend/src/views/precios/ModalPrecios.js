@@ -10,18 +10,15 @@ import {
   CModalTitle,
 } from '@coreui/react'
 import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseModal } from '../../actions/uiAction'
-import { registerPriceList, modifyPriceList } from '../../actions/preciosAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useAuthStore } from '../../stores/useAuthStore'
+import { usePreciosStore } from '../../stores/usePreciosStore'
 
 export const ModalPrecios = () => {
-  const dispatch = useDispatch()
-  const { usuario } = useSelector((state) => state.auth)
-  const { modalOpen, modalTitle, modalButton, modalAction, loading } = useSelector(
-    (state) => state.ui,
-  )
-
-  const { precio: listaPrecio, error: errorForm } = useSelector((state) => state.precios)
+  const { modalOpen, modalTitle, modalButton, modalAction, closeModal } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { usuario } = useAuthStore()
+  const { precio: listaPrecio, error: errorForm, registerPriceList, modifyPriceList } = usePreciosStore()
   const [formValues, setFormValues] = useState(listaPrecio)
 
   useEffect(() => {
@@ -47,21 +44,17 @@ export const ModalPrecios = () => {
     e.preventDefault()
     if (isFormValid()) {
       if (modalAction === 'crear') {
-        dispatch(
-          registerPriceList({
-            name,
-            percent,
-            user_id: usuario.id,
-          }),
-        )
+        registerPriceList({
+          name,
+          percent,
+          user_id: usuario.id,
+        })
       } else {
-        dispatch(
-          modifyPriceList({
-            id,
-            name,
-            percent,
-          }),
-        )
+        modifyPriceList({
+          id,
+          name,
+          percent,
+        })
       }
     }
   }
@@ -88,7 +81,7 @@ export const ModalPrecios = () => {
   const { id, name, percent } = formValues
 
   const CloseModal = () => {
-    dispatch(uiCloseModal())
+    closeModal()
   }
 
   return (

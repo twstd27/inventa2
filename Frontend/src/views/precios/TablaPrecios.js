@@ -20,15 +20,14 @@ import {
   CTableHeaderCell,
   CTableRow,
 } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiOpenDialog, uiOpenModal } from '../../actions/uiAction'
-import { setPrecio } from '../../actions/preciosAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { usePreciosStore } from '../../stores/usePreciosStore'
 import CIcon from '@coreui/icons-react'
 import { cilCheckAlt, cilPencil, cilX, cilWarning } from '@coreui/icons'
 
 const TablaPrecios = () => {
-  const dispatch = useDispatch()
-  const { precios: listasPrecios } = useSelector((state) => state.precios)
+  const { openModal, openDialog } = useUIStore()
+  const { precios: listasPrecios, setPrecio } = usePreciosStore()
 
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -38,6 +37,32 @@ const TablaPrecios = () => {
   const paginas = []
   for (let i = 1; i <= Math.ceil(listasPrecios.length / pagination.pageSize); i++) {
     paginas.push({ value: i, label: i })
+  }
+
+  const openModal_ = (precio) => {
+    setPrecio(precio)
+    openModal(
+      <span>
+        <CIcon icon={cilPencil} /> Editar Lista de Precios
+      </span>,
+      'Guardar Cambios',
+      'modificar',
+    )
+  }
+
+  const toggleAlert = (tipo, precio) => {
+    setPrecio(precio)
+    openDialog(
+      <span>
+        <CIcon icon={cilWarning} /> Confirmación
+      </span>,
+      <span>
+        Está seguro que quiere cambiar la lista de precios a estado <strong>{tipo}</strong>?
+      </span>,
+      'Si',
+      'No',
+      tipo,
+    )
   }
 
   const columns = useMemo(
@@ -71,7 +96,7 @@ const TablaPrecios = () => {
                   color="primary"
                   variant="outline"
                   shape="rounded-0"
-                  onClick={() => openModal(row.original)}
+                  onClick={() => openModal_(row.original)}
                 >
                   <CIcon icon={cilPencil} />
                 </CButton>{' '}
@@ -98,7 +123,7 @@ const TablaPrecios = () => {
         ),
       },
     ],
-    [dispatch],
+    [],
   )
 
   const table = useReactTable({
@@ -112,36 +137,6 @@ const TablaPrecios = () => {
     },
     getFilteredRowModel: getFilteredRowModel(),
   })
-
-  const openModal = (precio) => {
-    dispatch(setPrecio(precio))
-    dispatch(
-      uiOpenModal(
-        <span>
-          <CIcon icon={cilPencil} /> Editar Lista de Precios
-        </span>,
-        'Guardar Cambios',
-        'modificar',
-      ),
-    )
-  }
-
-  const toggleAlert = (tipo, precio) => {
-    dispatch(setPrecio(precio))
-    dispatch(
-      uiOpenDialog(
-        <span>
-          <CIcon icon={cilWarning} /> Confirmación
-        </span>,
-        <span>
-          Está seguro que quiere cambiar la lista de precios a estado <strong>{tipo}</strong>?
-        </span>,
-        'Si',
-        'No',
-        tipo,
-      ),
-    )
-  }
 
   return (
     <>

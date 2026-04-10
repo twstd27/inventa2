@@ -1,36 +1,31 @@
 import React from 'react'
 import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseDialog } from '../../actions/uiAction'
-import { deleteProduct, restoreProduct } from '../../actions/productosAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useProductosStore } from '../../stores/useProductosStore'
 
 export const DialogProductos = () => {
-  const dispatch = useDispatch()
   const {
-    dialogProductOpen,
+    dialogProductosOpen,
     dialogTitle,
     dialogBody,
     dialogButtonOk,
     dialogButtonCancel,
     dialogAction,
-    loading,
-  } = useSelector((state) => state.ui)
-  const { producto } = useSelector((state) => state.productos)
+    closeDialog,
+  } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { producto, deleteProduct, restoreProduct } = useProductosStore()
 
   const handleClick = () => {
     if (dialogAction === 'activo') {
-      dispatch(restoreProduct(producto))
+      restoreProduct(producto)
     } else {
-      dispatch(deleteProduct(producto))
+      deleteProduct(producto)
     }
   }
 
-  const closeDialog = () => {
-    dispatch(uiCloseDialog())
-  }
-
   return (
-    <CModal visible={dialogProductOpen} onClose={closeDialog} color="primary" size="sm">
+    <CModal visible={dialogProductosOpen} onClose={closeDialog} color="primary" size="sm">
       <CModalHeader closeButton>
         <CModalTitle>{dialogTitle}</CModalTitle>
       </CModalHeader>

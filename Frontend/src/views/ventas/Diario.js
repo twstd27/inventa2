@@ -16,20 +16,26 @@ import {
   CTableRow,
 } from '@coreui/react'
 import { useReactTable, getCoreRowModel, flexRender } from '@tanstack/react-table'
-import { useDispatch, useSelector } from 'react-redux'
-import { getDiario } from '../../actions/ventasAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useVentasStore } from '../../stores/useVentasStore'
+import { useSucursalesStore } from '../../stores/useSucursalesStore'
+import { useAuthStore } from '../../stores/useAuthStore'
 import { format } from 'date-fns'
 import Select from 'react-select'
 import SpinningIcon from '../../components/shared/SpinningIcon'
 import { Printer } from 'lucide-react'
 import { useReactToPrint } from 'react-to-print'
+import { SelectStyles } from '../../helpers/global'
+import { useLayoutStore } from '../../stores/useLayoutStore'
 
 const DiarioVentas = () => {
-  const dispatch = useDispatch()
-  const { loading } = useSelector((state) => state.ui)
-  const { diario } = useSelector((state) => state.ventas)
-  const { sucursalesCombo } = useSelector((state) => state.sucursales)
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { diario, getDiario } = useVentasStore()
+  const { sucursalesCombo } = useSucursalesStore()
+  const { usuario } = useAuthStore()
   const componentRef = useRef(null)
+  const { theme } = useLayoutStore()
+  const selectStyles = SelectStyles(theme)
   const [state, setState] = useState({
     start_date: format(Date.now(), 'yyyy-MM-dd'),
     end_date: format(Date.now(), 'yyyy-MM-dd'),
@@ -39,8 +45,6 @@ const DiarioVentas = () => {
     tax: 0,
   })
   const { start_date, end_date, sucursalVenta, total, profit, tax } = state
-
-  const { usuario } = useSelector((state) => state.auth)
 
   useEffect(() => {
     setState({
@@ -160,7 +164,7 @@ const DiarioVentas = () => {
 
     // si el usuario tiene role_id = 1, agregamos esas columnas
     return usuario?.role_id === 1 ? [...baseColumns, ...adminColumns] : baseColumns
-  }, [dispatch, usuario])
+  }, [usuario])
 
   const table = useReactTable({
     data: diario,
@@ -195,7 +199,7 @@ const DiarioVentas = () => {
   const buscarRegistros = (startDate, endDate, sucursal) => {
     if (startDate !== '' && endDate !== '') {
       if (sucursal !== null && sucursal !== undefined) {
-        dispatch(getDiario({ startDate, endDate, sucursal }))
+        getDiario({ startDate, endDate, sucursal })
       }
     }
   }
@@ -238,6 +242,7 @@ const DiarioVentas = () => {
               <CCol md="3">
                 <CFormLabel htmlFor="branch">Sucursal</CFormLabel>
                 <Select
+                  styles={selectStyles}
                   value={sucursalVenta}
                   onChange={handleSelectChangeBranch}
                   options={sucursalesCombo}

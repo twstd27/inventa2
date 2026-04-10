@@ -2,30 +2,28 @@ import React, { useEffect } from 'react'
 import { CCard, CCardBody, CCardHeader, CCardTitle, CCol, CRow, CButton } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilPlus } from '@coreui/icons'
-import { useDispatch } from 'react-redux'
-import { uiOpenModal } from '../../actions/uiAction'
-import { getTiposDeCambio, resetTipoDeCambio } from '../../actions/tipoDeCambioAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useTipoDeCambioStore } from '../../stores/useTipoDeCambioStore'
 import TablaTiposDeCambio from './TablaTiposDeCambio'
 import { ModalTipoDeCambio } from './ModalTipoDeCambio'
 import { DialogTipoDeCambio } from './DialogTipoDeCambio'
 
 const AdministrarTiposDeCambio = () => {
-  const dispatch = useDispatch()
+  const { openModal } = useUIStore()
+  const { getTiposDeCambio, resetTipoDeCambio } = useTipoDeCambioStore()
 
   useEffect(() => {
-    dispatch(getTiposDeCambio())
-  }, [dispatch])
+    getTiposDeCambio()
+  }, [])
 
-  const openModal = () => {
-    dispatch(resetTipoDeCambio())
-    dispatch(
-      uiOpenModal(
-        <span>
-          <CIcon icon={cilPlus} /> Nuevo Tipo de Cambio
-        </span>,
-        'Crear Tipo de Cambio',
-        'crear',
-      ),
+  const openModalNew = () => {
+    resetTipoDeCambio()
+    openModal(
+      <span>
+        <CIcon icon={cilPlus} /> Nuevo Tipo de Cambio
+      </span>,
+      'Crear Tipo de Cambio',
+      'crear',
     )
   }
 
@@ -38,7 +36,7 @@ const AdministrarTiposDeCambio = () => {
               <CCardTitle>Tipos de Cambio</CCardTitle>
             </div>
             <div className="text-end">
-              <CButton color="primary" onClick={openModal}>
+              <CButton color="primary" onClick={openModalNew}>
                 <CIcon icon={cilPlus} /> Nuevo
               </CButton>
             </div>

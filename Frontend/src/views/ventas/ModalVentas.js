@@ -9,8 +9,8 @@ import {
   CRow,
 } from '@coreui/react'
 import React, { useRef } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseModal } from '../../actions/uiAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useVentasStore } from '../../stores/useVentasStore'
 import { format } from 'date-fns'
 import { NumeroLiteral, SerialNumber } from '../../helpers/global'
 
@@ -19,9 +19,8 @@ import { Printer } from 'lucide-react'
 import { useReactToPrint } from 'react-to-print'
 
 export const ModalVentas = () => {
-  const dispatch = useDispatch()
-  const { modalVentasOpen, modalTitle } = useSelector((state) => state.ui)
-  const { venta } = useSelector((state) => state.ventas)
+  const { modalVentasOpen, modalTitle, closeModal } = useUIStore()
+  const { venta } = useVentasStore()
 
   const componentRef = useRef(null)
 
@@ -64,7 +63,7 @@ export const ModalVentas = () => {
   })
 
   const CloseModal = () => {
-    dispatch(uiCloseModal())
+    closeModal()
   }
 
   const handlePrint = useReactToPrint({

@@ -1,31 +1,29 @@
 import React, { useEffect } from 'react'
 import { CCard, CCardBody, CCardHeader, CCol, CRow, CButton, CCardTitle } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { useDispatch } from 'react-redux'
-import { uiOpenModal } from '../../actions/uiAction'
-import { getCategorias, resetCategorias } from '../../actions/categoriasAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useCategoriasStore } from '../../stores/useCategoriasStore'
 import TablaCategorias from './TablaCategorias'
 import { ModalCategorias } from './ModalCategorias'
 import { DialogCategorias } from './DialogCategorias'
 import { cilPlus } from '@coreui/icons'
 
 const AdministrarCategorias = () => {
-  const dispatch = useDispatch()
+  const { openModal } = useUIStore()
+  const { getCategorias, resetCategorias } = useCategoriasStore()
 
   useEffect(() => {
-    dispatch(getCategorias())
-  }, [dispatch])
+    getCategorias()
+  }, [])
 
-  const openModal = () => {
-    dispatch(resetCategorias())
-    dispatch(
-      uiOpenModal(
-        <span>
-          <CIcon icon={cilPlus} /> Nueva Categoria
-        </span>,
-        'Crear Categoria',
-        'crear',
-      ),
+  const openModalNuevo = () => {
+    resetCategorias()
+    openModal(
+      <span>
+        <CIcon icon={cilPlus} /> Nueva Categoria
+      </span>,
+      'Crear Categoria',
+      'crear',
     )
   }
 
@@ -38,7 +36,7 @@ const AdministrarCategorias = () => {
               <CCardTitle>Lista de Categorias</CCardTitle>
             </div>
             <div className="card-header-actions text-end">
-              <CButton color="primary" onClick={openModal}>
+              <CButton color="primary" onClick={openModalNuevo}>
                 <CIcon icon={cilPlus} /> Nuevo
               </CButton>
             </div>

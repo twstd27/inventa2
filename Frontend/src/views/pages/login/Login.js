@@ -16,17 +16,16 @@ import {
 import CIcon from '@coreui/icons-react'
 import { cilLockLocked, cilUser } from '@coreui/icons'
 import { useNavigate } from 'react-router-dom'
-import { useDispatch, useSelector } from 'react-redux'
 import { useForm } from '../../../hooks/useForm'
-import { startLogin } from '../../../actions/authAction'
+import { useAuthStore } from '../../../stores/useAuthStore'
+import { useUIStore } from '../../../stores/useUIStore'
 
 const Login = () => {
-  const dispatch = useDispatch()
   const navigate = useNavigate()
   const [validatedUser, setValidatedUser] = useState(false)
   const [validatedPassword, setValidatedPassword] = useState(false)
-  const { loading } = useSelector((state) => state.ui)
-  const { error: errLogin, logged } = useSelector((state) => state.auth)
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { error: errLogin, logged, startLogin } = useAuthStore()
   const [formValues, handleInputChange] = useForm({
     email: '',
     password: '',
@@ -46,7 +45,7 @@ const Login = () => {
       event.stopPropagation()
       return
     }
-    dispatch(startLogin(email, password))
+    startLogin(email, password)
   }
 
   const { email, password } = formValues

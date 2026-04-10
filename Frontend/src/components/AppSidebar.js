@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
 
 import {
   CCloseButton,
@@ -14,19 +13,18 @@ import { AppSidebarNav } from './AppSidebarNav'
 // sidebar nav config
 import navigation from '../_nav'
 
-import { toggleSidebar } from '../actions/layoutAction'
+import { useLayoutStore } from '../stores/useLayoutStore'
+import { useAuthStore } from '../stores/useAuthStore'
 
 const AppSidebar = () => {
-  const dispatch = useDispatch()
   const [menu, setMenu] = useState(navigation)
 
   //TODO: corregir error de doble click sobre toggleSidebar
-  const unfoldable = useSelector((state) => state.sidebarUnfoldable)
-  const sidebarShow = useSelector((state) => state.layout.sidebarShow)
-  const { usuario } = useSelector((state) => state.auth)
+  const { sidebarUnfoldable, sidebarShow, toggleSidebar } = useLayoutStore()
+  const { usuario } = useAuthStore()
 
   const handleToggleSidebar = (visible) => {
-    dispatch(toggleSidebar(visible))
+    toggleSidebar(visible)
   }
 
   const menuPermisos = (nav, criteria) => {
@@ -67,7 +65,7 @@ const AppSidebar = () => {
       className="border-end"
       colorScheme="dark"
       position="fixed"
-      unfoldable={unfoldable}
+      unfoldable={sidebarUnfoldable}
       visible={sidebarShow}
       onVisibleChange={() => {
         handleToggleSidebar(sidebarShow)
@@ -88,7 +86,7 @@ const AppSidebar = () => {
       <AppSidebarNav items={menu} />
       <CSidebarFooter className="border-top d-none d-lg-flex">
         <CSidebarToggler
-          onClick={() => dispatch({ type: 'set', sidebarUnfoldable: !unfoldable })}
+          onClick={() => toggleSidebar(!sidebarShow)}
         />
       </CSidebarFooter>
     </CSidebar>

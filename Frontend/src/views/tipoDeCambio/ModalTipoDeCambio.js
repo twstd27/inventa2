@@ -10,16 +10,13 @@ import {
   CModalTitle,
 } from '@coreui/react'
 import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseModal } from '../../actions/uiAction'
-import { registerTipoDeCambio, modifyTipoDeCambio } from '../../actions/tipoDeCambioAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useTipoDeCambioStore } from '../../stores/useTipoDeCambioStore'
 
 export const ModalTipoDeCambio = () => {
-  const dispatch = useDispatch()
-  const { modalOpen, modalTitle, modalButton, modalAction, loading } = useSelector(
-    (state) => state.ui,
-  )
-  const { tipoDeCambio, error: errorForm } = useSelector((state) => state.tipoDeCambio)
+  const { modalOpen, modalTitle, modalButton, modalAction, closeModal } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { tipoDeCambio, error: errorForm, registerTipoDeCambio, modifyTipoDeCambio } = useTipoDeCambioStore()
   const [formValues, setFormValues] = useState(tipoDeCambio)
   const [errDescription, setErrDescription] = useState(false)
 
@@ -41,13 +38,13 @@ export const ModalTipoDeCambio = () => {
     }
     setErrDescription(false)
     if (modalAction === 'crear') {
-      dispatch(registerTipoDeCambio({ description: formValues.description, value: formValues.value }))
+      registerTipoDeCambio({ description: formValues.description, value: formValues.value })
     } else {
-      dispatch(modifyTipoDeCambio({ id: formValues.id, description: formValues.description, value: formValues.value }))
+      modifyTipoDeCambio({ id: formValues.id, description: formValues.description, value: formValues.value })
     }
   }
 
-  const CloseModal = () => dispatch(uiCloseModal())
+  const CloseModal = () => closeModal()
 
   return (
     <CModal visible={modalOpen} onClose={CloseModal} color="primary">

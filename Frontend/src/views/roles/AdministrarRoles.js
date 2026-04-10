@@ -11,31 +11,29 @@ import {
   CButton,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { useDispatch } from 'react-redux'
-import { uiOpenModal } from '../../actions/uiAction'
-import { getRoles, resetRoles } from '../../actions/rolesAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useRolesStore } from '../../stores/useRolesStore'
 import { ModalRoles } from './ModalRoles'
 import { DialogRoles } from './DialogRoles'
 import TablaRoles from './TablaRoles'
 import { cilPlus } from '@coreui/icons'
 
 const AdministrarRoles = () => {
-  const dispatch = useDispatch()
+  const { openModal } = useUIStore()
+  const { getRoles, resetRoles } = useRolesStore()
 
   useEffect(() => {
-    dispatch(getRoles())
-  }, [dispatch])
+    getRoles()
+  }, [])
 
-  const openModal = () => {
-    dispatch(resetRoles())
-    dispatch(
-      uiOpenModal(
-        <span>
-          <CIcon icon={cilPlus} /> Nuevo Rol
-        </span>,
-        'Crear Rol',
-        'crear',
-      ),
+  const openModalNew = () => {
+    resetRoles()
+    openModal(
+      <span>
+        <CIcon icon={cilPlus} /> Nuevo Rol
+      </span>,
+      'Crear Rol',
+      'crear',
     )
   }
 
@@ -48,7 +46,7 @@ const AdministrarRoles = () => {
               <CCardTitle>Lista de Roles</CCardTitle>
             </div>
             <div className="card-header-actions text-end">
-              <CButton color="primary" onClick={openModal}>
+              <CButton color="primary" onClick={openModalNew}>
                 <CIcon icon={cilPlus} /> Nuevo
               </CButton>
             </div>

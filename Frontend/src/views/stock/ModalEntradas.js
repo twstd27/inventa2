@@ -30,26 +30,25 @@ import {
   CTableRow,
 } from '@coreui/react'
 import Select from 'react-select'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseModal } from '../../actions/uiAction'
-import { modifyEntry, registerEntry } from '../../actions/stockAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useAuthStore } from '../../stores/useAuthStore'
+import { useLayoutStore } from '../../stores/useLayoutStore'
+import { useStockStore } from '../../stores/useStockStore'
+import { useSucursalesStore } from '../../stores/useSucursalesStore'
+import { useProductosStore } from '../../stores/useProductosStore'
 import CIcon from '@coreui/icons-react'
 import { cilPencil, cilX, cilTrash, cilPlus } from '@coreui/icons'
 import { SelectStyles } from '../../helpers/global'
 
 export const ModalEntradas = () => {
-  const dispatch = useDispatch()
-  const { usuario } = useSelector((state) => state.auth)
-
-  const { theme } = useSelector((state) => state.layout)
+  const { modalOpen, modalTitle, modalButton, modalAction, closeModal } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { usuario } = useAuthStore()
+  const { theme } = useLayoutStore()
   const selectStyles = SelectStyles(theme)
-
-  const { modalOpen, modalTitle, modalButton, modalAction, loading } = useSelector(
-    (state) => state.ui,
-  )
-  const { entrada, error: errorForm } = useSelector((state) => state.stock)
-  const { sucursalesCombo } = useSelector((state) => state.sucursales)
-  const { productosCombo } = useSelector((state) => state.productos)
+  const { entrada, error: errorForm, registerEntry, modifyEntry } = useStockStore()
+  const { sucursalesCombo } = useSucursalesStore()
+  const { productosCombo } = useProductosStore()
   const [formValues, setFormValues] = useState(entrada)
   const [sucursalEntrada, setSucursalEntrada] = useState(null)
   const [productoEntrada, setProductoEntrada] = useState(null)
@@ -138,28 +137,24 @@ export const ModalEntradas = () => {
     e.preventDefault()
     if (isFormValid()) {
       if (modalAction.action === 'crear') {
-        dispatch(
-          registerEntry({
-            branch_id: sucursalEntrada.value,
-            type: modalAction.type,
-            doc_date,
-            comments,
-            user_id: usuario.id,
-            detalles: JSON.stringify(detalles),
-          }),
-        )
+        registerEntry({
+          branch_id: sucursalEntrada.value,
+          type: modalAction.type,
+          doc_date,
+          comments,
+          user_id: usuario.id,
+          detalles: JSON.stringify(detalles),
+        })
       } else {
-        dispatch(
-          modifyEntry({
-            id,
-            branch_id: sucursalEntrada.value,
-            type: modalAction.type,
-            doc_date,
-            comments,
-            detalles: JSON.stringify(detalles),
-            borrar: JSON.stringify(entrada.entry_details),
-          }),
-        )
+        modifyEntry({
+          id,
+          branch_id: sucursalEntrada.value,
+          type: modalAction.type,
+          doc_date,
+          comments,
+          detalles: JSON.stringify(detalles),
+          borrar: JSON.stringify(entrada.entry_details),
+        })
       }
     }
   }
@@ -312,7 +307,7 @@ export const ModalEntradas = () => {
   const { id, doc_date, comments } = formValues
 
   const CloseModal = () => {
-    dispatch(uiCloseModal())
+    closeModal()
   }
 
   const [pagination, setPagination] = useState({

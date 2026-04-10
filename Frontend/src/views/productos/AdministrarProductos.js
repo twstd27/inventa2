@@ -11,37 +11,37 @@ import {
   CCardTitle,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { useDispatch } from 'react-redux'
-import { uiOpenModal } from '../../actions/uiAction'
+import { useUIStore } from '../../stores/useUIStore'
 import TablaProductos from './TablaProductos'
 import { ModalProductos } from './ModalProductos'
 import { DialogProductos } from './DialogProductos'
-import { getProductos, resetProductos } from '../../actions/productosAction'
-import { getMarcas } from '../../actions/marcasActions'
-import { getCategorias } from '../../actions/categoriasAction'
+import { useProductosStore } from '../../stores/useProductosStore'
+import { useMarcasStore } from '../../stores/useMarcasStore'
+import { useCategoriasStore } from '../../stores/useCategoriasStore'
 import { ModalEtiqueta } from './ModalEtiqueta'
 import { cilPlus } from '@coreui/icons'
 
 const AdministrarProductos = () => {
   const [visible, setVisible] = useState(false)
-  const dispatch = useDispatch()
+  const { openModal } = useUIStore()
+  const { getProductos, resetProductos } = useProductosStore()
+  const { getMarcas } = useMarcasStore()
+  const { getCategorias } = useCategoriasStore()
 
   useEffect(() => {
-    dispatch(getProductos())
-    dispatch(getMarcas('combo'))
-    dispatch(getCategorias('combo'))
-  }, [dispatch])
+    getProductos()
+    getMarcas('combo')
+    getCategorias('combo')
+  }, [])
 
-  const openModal = () => {
-    dispatch(resetProductos())
-    dispatch(
-      uiOpenModal(
-        <span>
-          <CIcon icon={cilPlus} /> {`Nuevo Producto`}
-        </span>,
-        'Crear Producto',
-        'crear',
-      ),
+  const openModalNuevo = () => {
+    resetProductos()
+    openModal(
+      <span>
+        <CIcon icon={cilPlus} /> {`Nuevo Producto`}
+      </span>,
+      'Crear Producto',
+      'crear',
     )
   }
 
@@ -54,7 +54,7 @@ const AdministrarProductos = () => {
               <CCardTitle>Lista de Productos</CCardTitle>
             </div>
             <div className="card-header-actions text-end">
-              <CButton color="primary" onClick={openModal}>
+              <CButton color="primary" onClick={openModalNuevo}>
                 <CIcon icon={cilPlus} /> Nuevo
               </CButton>
             </div>

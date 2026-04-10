@@ -9,19 +9,18 @@ import {
   CCollapse
 } from '@coreui/react'
 import CIcon from "@coreui/icons-react";
-import {useDispatch} from "react-redux";
+import { useVentasStore } from '../../stores/useVentasStore'
 import TablaVentas from "./TablaVentas";
-import {getVentas} from "../../actions/ventasAction";
 import {ModalVentas} from "./ModalVentas";
 import {DialogVentas} from "./DialogVentas";
 
-const AdministrarMarcas = () => {
+const AdministrarVentas = () => {
   const [collapsed, setCollapsed] = useState(true);
-  const dispatch = useDispatch();
+  const { getVentas } = useVentasStore()
 
   useEffect(() => {
-    dispatch(getVentas());
-  }, [dispatch]);
+    getVentas();
+  }, []);
 
   return (
     <CRow>
@@ -48,4 +47,4 @@ const AdministrarMarcas = () => {
   )
 }
 
-export default AdministrarMarcas
+export default AdministrarVentas

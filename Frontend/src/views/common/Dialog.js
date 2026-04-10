@@ -1,17 +1,9 @@
 import React from 'react'
 import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseDialog } from '../../actions/uiAction'
+import { useUIStore } from '../../stores/useUIStore'
 
 export const Dialog = () => {
-  const dispatch = useDispatch()
-  const { dialogOpen, dialogTitle, dialogBody, dialogButtonCancel } = useSelector(
-    (state) => state.ui,
-  )
-
-  const closeDialog = () => {
-    dispatch(uiCloseDialog())
-  }
+  const { dialogOpen, dialogTitle, dialogBody, dialogButtonCancel, closeDialog } = useUIStore()
 
   return (
     <CModal visible={dialogOpen} onClose={closeDialog} color="primary" size="sm">

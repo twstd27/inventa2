@@ -11,40 +11,40 @@ import {
   CCardTitle,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { useDispatch } from 'react-redux'
-import { uiOpenModal } from '../../actions/uiAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useStockStore } from '../../stores/useStockStore'
+import { useSucursalesStore } from '../../stores/useSucursalesStore'
+import { useProductosStore } from '../../stores/useProductosStore'
 import TablaSalidas from './TablaSalidas'
 import { ModalEntradas } from './ModalEntradas'
 import { DialogEntradas } from './DialogEntradas'
-import { getSalidas, resetEntradas } from '../../actions/stockAction'
-import { getSucursales } from '../../actions/sucursalesAction'
-import { getProductos } from '../../actions/productosAction'
 import { cilPlus } from '@coreui/icons'
 
 const AdministrarSalidas = () => {
-  const dispatch = useDispatch()
+  const { openModal } = useUIStore()
+  const { getSalidas, resetEntradas } = useStockStore()
+  const { getSucursales } = useSucursalesStore()
+  const { getProductos } = useProductosStore()
 
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    dispatch(getSalidas(1, 5))
-    dispatch(getSucursales('combo'))
-    dispatch(getProductos('combo'))
-  }, [dispatch])
+    getSalidas(1, 5)
+    getSucursales('combo')
+    getProductos('combo')
+  }, [])
 
-  const openModal = (type) => {
-    dispatch(resetEntradas())
-    dispatch(
-      uiOpenModal(
-        <span>
-          <CIcon icon={cilPlus} /> {`Nueva ${type} de inventario`}
-        </span>,
-        `Crear ${type} de inventario`,
-        {
-          action: 'crear',
-          type,
-        },
-      ),
+  const openModalNew = (type) => {
+    resetEntradas()
+    openModal(
+      <span>
+        <CIcon icon={cilPlus} /> {`Nueva ${type} de inventario`}
+      </span>,
+      `Crear ${type} de inventario`,
+      {
+        action: 'crear',
+        type,
+      },
     )
   }
 
@@ -60,7 +60,7 @@ const AdministrarSalidas = () => {
               <CButton
                 color="primary"
                 onClick={() => {
-                  openModal('salida')
+                  openModalNew('salida')
                 }}
               >
                 <CIcon icon={cilPlus} /> Nuevo

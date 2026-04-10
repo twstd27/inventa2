@@ -12,8 +12,8 @@ import {
   CInputGroupText,
 } from '@coreui/react'
 import React, { useRef, useState, useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseModal } from '../../actions/uiAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useProductosStore } from '../../stores/useProductosStore'
 import html2canvas from 'html2canvas'
 import { QRCodeSVG } from 'qrcode.react'
 import { useReactToPrint } from 'react-to-print'
@@ -21,11 +21,9 @@ import { useReactToPrint } from 'react-to-print'
 export const ModalEtiqueta = () => {
   const componentRef = useRef(null)
 
-  const dispatch = useDispatch()
-  const { modalProductoEtiquetaOpen, modalTitle, modalButton, loading } = useSelector(
-    (state) => state.ui,
-  )
-  const { producto } = useSelector((state) => state.productos)
+  const { modalProductoEtiquetaOpen, modalTitle, modalButton, closeModal } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { producto } = useProductosStore()
 
   const { name, description, code, price } = producto
 
@@ -36,7 +34,7 @@ export const ModalEtiqueta = () => {
   }, [price])
 
   const CloseModal = () => {
-    dispatch(uiCloseModal())
+    closeModal()
   }
 
   const handleClick = () => {

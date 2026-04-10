@@ -19,16 +19,15 @@ import {
   CTableHeaderCell,
   CTableRow,
 } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiOpenDialog, uiOpenModal } from '../../actions/uiAction'
-import { setUsuario } from '../../actions/usuariosAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useUsuariosStore } from '../../stores/useUsuariosStore'
 import { colorBadge } from '../../helpers/global'
 import CIcon from '@coreui/icons-react'
 import { cilCheckAlt, cilPencil, cilX } from '@coreui/icons'
 
 const TablaUsuarios = () => {
-  const dispatch = useDispatch()
-  const { usuarios } = useSelector((state) => state.usuarios)
+  const { openModal, openDialog } = useUIStore()
+  const { usuarios, setUsuario } = useUsuariosStore()
 
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -38,6 +37,32 @@ const TablaUsuarios = () => {
   const paginas = []
   for (let i = 1; i <= Math.ceil(usuarios.length / pagination.pageSize); i++) {
     paginas.push({ value: i, label: i })
+  }
+
+  const openModal_ = (usuario) => {
+    setUsuario(usuario)
+    openModal(
+      <span>
+        <CIcon icon={cilPencil} /> Editar Usuario
+      </span>,
+      'Guardar Cambios',
+      'modificar',
+    )
+  }
+
+  const toggleAlert = (tipo, usuario) => {
+    setUsuario(usuario)
+    openDialog(
+      <span>
+        <i className="fa fa-exclamation-triangle" /> Confirmación
+      </span>,
+      <span>
+        ¿Está seguro que quiere cambiar el usuario a estado <strong>{tipo}</strong>?
+      </span>,
+      'Si',
+      'No',
+      tipo,
+    )
   }
 
   const columns = useMemo(
@@ -57,7 +82,7 @@ const TablaUsuarios = () => {
                   color="primary"
                   variant="outline"
                   shape="rounded-0"
-                  onClick={() => openModal(row.original)}
+                  onClick={() => openModal_(row.original)}
                 >
                   <CIcon icon={cilPencil} />
                 </CButton>{' '}
@@ -113,38 +138,8 @@ const TablaUsuarios = () => {
         ),
       },
     ],
-    [dispatch],
+    [],
   )
-
-  const openModal = (usuario) => {
-    dispatch(setUsuario(usuario))
-    dispatch(
-      uiOpenModal(
-        <span>
-          <CIcon icon={cilPencil} /> Editar Usuario
-        </span>,
-        'Guardar Cambios',
-        'modificar',
-      ),
-    )
-  }
-
-  const toggleAlert = (tipo, usuario) => {
-    dispatch(setUsuario(usuario))
-    dispatch(
-      uiOpenDialog(
-        <span>
-          <i className="fa fa-exclamation-triangle" /> Confirmación
-        </span>,
-        <span>
-          ¿Está seguro que quiere cambiar el usuario a estado <strong>{tipo}</strong>?
-        </span>,
-        'Si',
-        'No',
-        tipo,
-      ),
-    )
-  }
 
   const table = useReactTable({
     data: usuarios,

@@ -24,28 +24,19 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilSave } from '@coreui/icons'
-import { useDispatch, useSelector } from 'react-redux'
-import { getProductos, resetProductosLista, setProducto } from '../../actions/productosAction'
-import { getCategorias } from '../../actions/categoriasAction'
-import { getPrecios } from '../../actions/preciosAction'
-import { getParams } from '../../actions/paramsAction'
+import { useProductosStore } from '../../stores/useProductosStore'
+import { useCategoriasStore } from '../../stores/useCategoriasStore'
+import { useSucursalesStore } from '../../stores/useSucursalesStore'
+import { useAuthStore } from '../../stores/useAuthStore'
+import { useUIStore } from '../../stores/useUIStore'
+import { useLayoutStore } from '../../stores/useLayoutStore'
+import { useVentasStore } from '../../stores/useVentasStore'
+import { useParamsStore } from '../../stores/useParamsStore'
 import Select from 'react-select'
-import { getSucursales } from '../../actions/sucursalesAction'
 import { Dialog } from '../common/Dialog'
-import {
-  uiCloseModal,
-  uiOpenCotizacionesDialog,
-  uiOpenCotizacionesModal,
-  uiOpenDialog,
-  uiOpenModal,
-  uiOpenVentasDialog,
-  uiOpenVentasModal,
-} from '../../actions/uiAction'
-import { getVentas, registerSale, setVenta } from '../../actions/ventasAction'
 import { format } from 'date-fns'
 import { DialogVentas } from './DialogVentas'
 import { ModalVentas } from './ModalVentas'
-import { getCotizaciones, registerQuotation, setCotizacion } from '../../actions/cotizacionesAction'
 import { CardProducto } from '../productos/CardProducto'
 import { ModalCotizaciones } from './ModalCotizaciones'
 import { ModalDetalleProducto } from '../productos/ModalDetalleProducto'
@@ -66,16 +57,18 @@ import {
 } from 'lucide-react'
 
 const POS = () => {
-  const { productos } = useSelector((state) => state.productos)
-  const { usuario } = useSelector((state) => state.auth)
-  const { sucursalesCombo } = useSelector((state) => state.sucursales)
-  const { loading } = useSelector((state) => state.ui)
-  const { theme } = useSelector((state) => state.layout)
+  const { productos, resetProductosLista, setProducto, getProductos } = useProductosStore()
+  const { usuario } = useAuthStore()
+  const { sucursalesCombo, getSucursales } = useSucursalesStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { openModal, openDialog, openVentasDialog, closeModal } = useUIStore()
+  const { theme } = useLayoutStore()
+  const { registerSale, setVenta } = useVentasStore()
+  const { getParams } = useParamsStore()
 
   const [toast, addToast] = useState()
   const [params, setParams] = useState([])
   const toaster = useRef(null)
-  const dispatch = useDispatch()
 
   const selectStyles = SelectStyles(theme)
   const debounceTimer = useRef(null)
@@ -113,17 +106,17 @@ const POS = () => {
   } = state
 
   useEffect(() => {
-    dispatch(getSucursales('combo'))
-    // dispatch(getVentas('', 1, 10))
-    // dispatch(getCotizaciones('lista'))
-    dispatch(resetProductosLista())
-    // dispatch(getCategorias('combo'))
-  }, [dispatch])
+    getSucursales('combo')
+    // getVentas('', 1, 10)
+    // getCotizaciones('lista')
+    resetProductosLista()
+    // getCategorias('combo')
+  }, [])
 
   useEffect(() => {
     const fetchParams = async () => {
       try {
-        const data = await dispatch(getParams())
+        const data = await getParams()
         setParams(data)
       } catch (error) {
         console.error('Error fetching params:', error)
@@ -131,7 +124,7 @@ const POS = () => {
     }
 
     fetchParams()
-  }, [dispatch])
+  }, [])
 
   const handleStateChange = ({ target }) => {
     setState({
@@ -201,40 +194,36 @@ const POS = () => {
   }
 
   const handleClickAdd = (producto) => {
-    dispatch(uiCloseModal())
+    closeModal()
 
     const isQuantityInvalid = producto.quantity <= 0 && params[2]?.value === '0'
     const productExists = lineas.findIndex((linea) => linea.product.id === producto.id) !== -1
 
     if (isQuantityInvalid) {
-      dispatch(
-        uiOpenDialog(
-          <>
-            <TriangleAlert /> Cantidad Insuficiente
-          </>,
-          <span>
-            No hay suficiente exitencia del producto <b>{producto.name}</b> en la sucursal{' '}
-            <b>{sucursalVenta.label}</b>
-          </span>,
-          '',
-          'Cerrar',
-          '',
-        ),
+      openDialog(
+        <>
+          <TriangleAlert /> Cantidad Insuficiente
+        </>,
+        <span>
+          No hay suficiente exitencia del producto <b>{producto.name}</b> en la sucursal{' '}
+          <b>{sucursalVenta.label}</b>
+        </span>,
+        '',
+        'Cerrar',
+        '',
       )
       return
     }
 
     if (productExists) {
-      dispatch(
-        uiOpenDialog(
-          <>
-            <TriangleAlert /> Producto duplicado
-          </>,
-          <span>El producto ya esta incluído en la venta</span>,
-          '',
-          'Cerrar',
-          '',
-        ),
+      openDialog(
+        <>
+          <TriangleAlert /> Producto duplicado
+        </>,
+        <span>El producto ya esta incluído en la venta</span>,
+        '',
+        'Cerrar',
+        '',
       )
       return
     }
@@ -323,45 +312,27 @@ const POS = () => {
           lineas: JSON.stringify(lineas),
         }
 
-        dispatch(
-          uiOpenVentasDialog(
-            <>
-              <TriangleAlert /> Confirmar Venta
-            </>,
-            <span>
-              esta seguro que quiere realizar la venta por <b>BOB {docTotal}</b>?
-            </span>,
-            'Vender',
-            'Cerrar',
-            'crear',
-            nuevaVenta,
-          ),
+        openVentasDialog(
+          <>
+            <TriangleAlert /> Confirmar Venta
+          </>,
+          <span>
+            esta seguro que quiere realizar la venta por <b>BOB {docTotal}</b>?
+          </span>,
+          'Vender',
+          'Cerrar',
+          'crear',
+          nuevaVenta,
         )
-        // dispatch(
-        //   setVenta({
-        //     branch_id: sucursalVenta.value,
-        //     doc_total: docTotal,
-        //     doc_date,
-        //     comments,
-        //     invoice,
-        //     invoice_number,
-        //     customer,
-        //     customer_number,
-        //     user_id: usuario.id,
-        //     lineas: JSON.stringify(auxLineas),
-        //   }),
-        // )
       } else {
-        dispatch(
-          uiOpenDialog(
-            <>
-              <TriangleAlert /> Alerta
-            </>,
-            <span>Hay errores en las líneas de detalle, solucionelos antes de continuar..</span>,
-            '',
-            'Cerrar',
-            '',
-          ),
+        openDialog(
+          <>
+            <TriangleAlert /> Alerta
+          </>,
+          <span>Hay errores en las líneas de detalle, solucionelos antes de continuar..</span>,
+          '',
+          'Cerrar',
+          '',
         )
       }
     }
@@ -388,7 +359,7 @@ const POS = () => {
   const buscarProducto = (buscar, sucursal) => {
     if (buscar !== '') {
       if (sucursal !== null && sucursal !== undefined) {
-        dispatch(getProductos('busqueda', { buscar, sucursal }))
+        getProductos('busqueda', { buscar, sucursal })
       }
     }
   }
@@ -408,31 +379,29 @@ const POS = () => {
     return total
   }
 
-  const openModal = (producto) => {
-    dispatch(setProducto(producto))
-    dispatch(
-      uiOpenModal(
-        <span>
-          {producto.code} - {producto.name}
-        </span>,
-        'Agregar',
-        '',
-      ),
+  const openModalProducto = (producto) => {
+    setProducto(producto)
+    openModal(
+      <span>
+        {producto.code} - {producto.name}
+      </span>,
+      'Agregar',
+      '',
     )
   }
 
   // const openVentaModal = (venta) => {
-  //   dispatch(setVenta(venta))
-  //   dispatch(uiOpenVentasModal(<span> Detalle de Venta</span>, '', 'crear'))
+  //   setVenta(venta)
+  //   openVentasModal(<span> Detalle de Venta</span>, '', 'crear')
   // }
 
   // const openModalCotizacion = (cotizacion) => {
-  //   dispatch(setCotizacion(cotizacion))
-  //   dispatch(uiOpenCotizacionesModal(<span> Detalle de Cotización</span>, '', ''))
+  //   setCotizacion(cotizacion)
+  //   openCotizacionesModal(<span> Detalle de Cotización</span>, '', '')
   // }
 
   const RealizarVenta = (venta) => {
-    dispatch(registerSale(venta))
+    registerSale(venta)
     setState({
       ...state,
       active: 1,
@@ -454,98 +423,11 @@ const POS = () => {
     })
   }
 
-  // const Cotizar = () => {
-  //   if (isFormValid()) {
-  //     let result = lineas.find((obj) => {
-  //       return obj.errorQuantity === true || obj.errorPrice === true
-  //     })
-  //     if (!result) {
-  //       dispatch(
-  //         setCotizacion({
-  //           branch_id: sucursalVenta.value,
-  //           doc_total: docTotal,
-  //           customer: '',
-  //           doc_date,
-  //           comments,
-  //           user_id: usuario.id,
-  //           lineas: JSON.stringify(lineas),
-  //         }),
-  //       )
-  //       dispatch(
-  //         uiOpenCotizacionesDialog(
-  //           <span>
-  //             <i className="fa fa-exclamation-triangle" /> Confirmación
-  //           </span>,
-  //           <span>
-  //             esta seguro que quiere realizar la cotización por <b>BOB {docTotal}</b>?
-  //           </span>,
-  //           'Cotizar',
-  //           'Cerrar',
-  //           'crear',
-  //         ),
-  //       )
-  //     } else {
-  //       dispatch(
-  //         uiOpenDialog(
-  //           <span>
-  //             <i className="fa fa-exclamation-triangle" /> Alerta
-  //           </span>,
-  //           <span>Hay errores en las líneas de detalle, solucionelos antes de continuar..</span>,
-  //           '',
-  //           'Cerrar',
-  //           '',
-  //         ),
-  //       )
-  //     }
-  //   }
-  // }
-
-  // const RealizarCotizacion = (cotizacion) => {
-  //   dispatch(registerQuotation(cotizacion))
-  //   setState({
-  //     ...state,
-  //     active: 2,
-  //   })
-  // }
-
-  // const CopiarCotizacion = (cotizacion) => {
-  //   for (let i = 0; i < cotizacion.quotation_details.length; i++) {
-  //     cotizacion.quotation_details[i].total = (
-  //       cotizacion.quotation_details[i].price *
-  //       1 *
-  //       (cotizacion.quotation_details[i].quantity * 1)
-  //     ).toFixed(2) //TODO: parametrizar
-  //     cotizacion.quotation_details[i].errorPrice = false
-  //     cotizacion.quotation_details[i].errorQuantity =
-  //       cotizacion.quotation_details[i].quantity * 1 >
-  //       cotizacion.quotation_details[i].maxQuantity * 1
-  //     cotizacion.quotation_details[i].minPrice =
-  //       cotizacion.quotation_details[i].product.price_wholesome
-  //   }
-  //   setState({
-  //     ...state,
-  //     lineas: cotizacion.quotation_details,
-  //     comments: cotizacion.comments || '',
-  //     docTotal: cotizacion.doc_total,
-  //     doc_date: format(Date.now(), 'yyyy-MM-dd'),
-  //     errDocDate: false,
-  //     sucursalVenta: {
-  //       value: cotizacion.branch.id,
-  //       label: cotizacion.branch.name,
-  //     },
-  //     errBranch: '',
-  //     active: 0,
-  //   })
-  //   dispatch(uiCloseModal())
-  // }
-
-  // const RefreshVentas = () => {
-  //   dispatch(getVentas('', 1, 10))
-  // }
-
-  // const RefreshCotizaciones = () => {
-  //   dispatch(getCotizaciones('lista'))
-  // }
+  // const Cotizar = () => { ... }
+  // const RealizarCotizacion = (cotizacion) => { ... }
+  // const CopiarCotizacion = (cotizacion) => { ... }
+  // const RefreshVentas = () => { ... }
+  // const RefreshCotizaciones = () => { ... }
 
   const showToast = (color, message) => (
     <CToast color={color}>
@@ -644,7 +526,7 @@ const POS = () => {
                                 handleClickAdd(item)
                               }}
                               modal={() => {
-                                openModal(item)
+                                openModalProducto(item)
                               }}
                               key={x}
                             />

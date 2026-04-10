@@ -11,17 +11,15 @@ import {
   CFormTextarea,
 } from '@coreui/react'
 import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseModal } from '../../actions/uiAction'
-import { registerBrand, modifyBrand } from '../../actions/marcasActions'
+import { useUIStore } from '../../stores/useUIStore'
+import { useAuthStore } from '../../stores/useAuthStore'
+import { useMarcasStore } from '../../stores/useMarcasStore'
 
 export const ModalMarcas = () => {
-  const dispatch = useDispatch()
-  const { usuario } = useSelector((state) => state.auth)
-  const { modalOpen, modalTitle, modalButton, modalAction, loading } = useSelector(
-    (state) => state.ui,
-  )
-  const { marca, error: errorForm } = useSelector((state) => state.marcas)
+  const { usuario } = useAuthStore()
+  const { modalOpen, modalTitle, modalButton, modalAction, closeModal } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { marca, error: errorForm, registerBrand, modifyBrand } = useMarcasStore()
   const [formValues, setFormValues] = useState(marca)
 
   useEffect(() => {
@@ -47,21 +45,17 @@ export const ModalMarcas = () => {
     e.preventDefault()
     if (isFormValid()) {
       if (modalAction === 'crear') {
-        dispatch(
-          registerBrand({
-            name,
-            description,
-            user_id: usuario.id,
-          }),
-        )
+        registerBrand({
+          name,
+          description,
+          user_id: usuario.id,
+        })
       } else {
-        dispatch(
-          modifyBrand({
-            id,
-            name,
-            description,
-          }),
-        )
+        modifyBrand({
+          id,
+          name,
+          description,
+        })
       }
     }
   }
@@ -88,7 +82,7 @@ export const ModalMarcas = () => {
   const { id, name, description } = formValues
 
   const CloseModal = () => {
-    dispatch(uiCloseModal())
+    closeModal()
   }
 
   return (

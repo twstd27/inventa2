@@ -1,11 +1,9 @@
 import React from 'react'
 import { CButton, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle } from '@coreui/react'
-import { useDispatch, useSelector } from 'react-redux'
-import { uiCloseDialog } from '../../actions/uiAction'
-import { restoreRole, deleteRole } from '../../actions/rolesAction'
+import { useUIStore } from '../../stores/useUIStore'
+import { useRolesStore } from '../../stores/useRolesStore'
 
 export const DialogRoles = () => {
-  const dispatch = useDispatch()
   const {
     dialogOpen,
     dialogTitle,
@@ -13,20 +11,17 @@ export const DialogRoles = () => {
     dialogButtonOk,
     dialogButtonCancel,
     dialogAction,
-    loading,
-  } = useSelector((state) => state.ui)
-  const { rol } = useSelector((state) => state.roles)
+    closeDialog,
+  } = useUIStore()
+  const loading = useUIStore((s) => s.loadingCount > 0)
+  const { rol, restoreRole, deleteRole } = useRolesStore()
 
   const handleClick = () => {
     if (dialogAction === 'activo') {
-      dispatch(restoreRole(rol))
+      restoreRole(rol)
     } else {
-      dispatch(deleteRole(rol))
+      deleteRole(rol)
     }
-  }
-
-  const closeDialog = () => {
-    dispatch(uiCloseDialog())
   }
 
   return (
