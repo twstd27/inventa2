@@ -1,16 +1,16 @@
 import { setProductosEtiqueta } from '../actions/productosAction'
 
-export const API =
-  // 'http://pruebas.sblimportadora.com/public'
-  // 'http://localhost:8000'
-  // 'http://192.168.0.134:8000'
-  // 'http://apicv.sblimportadora.com/public'
-  'http://apibigtool.sblimportadora.com/public'
-// export const DISK = 'http://localhost:8000/storage/images'
-export const DISK = 'https://apibigtool.sblimportadora.com/public/storage/images'
+// export const API = 'http://localhost:8000'
+// export const API = 'http://apicv.sblimportadora.com/public'
+// export const API = 'http://apibigtool.sblimportadora.com/public'
+// export const API = 'https://api.sublimack.com'
+export const API = 'https://api.vida-luz.net'
 
-// bigtool: L0mVZB3R[~
-// cv: 0cL:ZOWZ
+// export const DISK = 'http://localhost:8000/storage/images'
+// export const DISK = 'https://apibigtool.sblimportadora.com/public/storage/images'
+// export const DISK = 'https://apicv.sblimportadora.com/public/storage/images'
+// export const DISK = 'https://api.sublimack.com/storage/images'
+export const DISK = 'https://api.vida-luz.net/storage/images'
 
 export const types = {
   auth: {
