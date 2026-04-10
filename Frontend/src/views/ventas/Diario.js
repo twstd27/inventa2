@@ -41,7 +41,6 @@ const DiarioVentas = () => {
   const { start_date, end_date, sucursalVenta, total, profit, tax } = state
 
   const { usuario } = useSelector((state) => state.auth)
-  console.log(usuario)
 
   useEffect(() => {
     setState({

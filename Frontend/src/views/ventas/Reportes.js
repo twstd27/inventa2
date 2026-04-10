@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import {
   CCard,
   CCardBody,
@@ -20,10 +20,6 @@ import { getSucursales } from '../../actions/sucursalesAction'
 import { CircleDollarSign, Tag } from 'lucide-react'
 
 const AdministrarMarcas = () => {
-  const [state, setState] = useState({
-    active: 1,
-  })
-  const { active } = state
   const dispatch = useDispatch()
 
   useEffect(() => {
@@ -36,7 +32,7 @@ const AdministrarMarcas = () => {
       <CCol xs="12">
         <CCard>
           <CCardBody>
-            <CTabs activeItemKey={active}>
+            <CTabs defaultActiveItemKey={1}>
               <CTabList variant="underline-border">
                 <CTab aria-controls="home-tab-pane" itemKey={1}>
                   <Tag /> Lista de Ventas

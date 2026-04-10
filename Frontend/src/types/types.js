@@ -3,14 +3,14 @@ import { setProductosEtiqueta } from '../actions/productosAction'
 // export const API = 'http://localhost:8000'
 // export const API = 'http://apicv.sblimportadora.com/public'
 // export const API = 'http://apibigtool.sblimportadora.com/public'
-// export const API = 'https://api.sublimack.com'
-export const API = 'https://api.vida-luz.net'
+export const API = 'https://api.sublimack.com'
+// export const API = 'https://api.vida-luz.net'
 
 // export const DISK = 'http://localhost:8000/storage/images'
 // export const DISK = 'https://apibigtool.sblimportadora.com/public/storage/images'
 // export const DISK = 'https://apicv.sblimportadora.com/public/storage/images'
-// export const DISK = 'https://api.sublimack.com/storage/images'
-export const DISK = 'https://api.vida-luz.net/storage/images'
+export const DISK = 'https://api.sublimack.com/storage/images'
+// export const DISK = 'https://api.vida-luz.net/storage/images'
 
 export const types = {
   auth: {
