@@ -3,8 +3,21 @@ import { create } from 'zustand'
 const emptyModal = { title: '', button: '', action: '' }
 const emptyDialog = { title: '', body: '', buttonOk: '', buttonCancel: '', action: '' }
 
+let toastIdCounter = 0
+
 export const useUIStore = create((set) => ({
   loadingCount: 0,
+  toasts: [], // [{ id, color, message }]
+
+  addToast: (color, message) => {
+    const id = ++toastIdCounter
+    set((s) => ({ toasts: [...s.toasts, { id, color, message }] }))
+    setTimeout(() => {
+      set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }))
+    }, 3500)
+  },
+
+  removeToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
   modalOpen: false,
   modalProductosOpen: false,
   modalVentasOpen: false,

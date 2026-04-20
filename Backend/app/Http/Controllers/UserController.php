@@ -151,9 +151,16 @@ class UserController extends Controller
             if(Hash::check($request->password, $usuario->password)) {
                 $user = User::find($usuario->id);
                 if($user != null){
+                    // Generar nuevo token de API
+                    $token = \Illuminate\Support\Str::random(60);
+                    $user->api_token = hash('sha256', $token);
+                    $user->token_expires_at = now()->addHours(12);
+                    $user->save();
+
                     $user->permissions = json_decode(Role::withTrashed()->findOrFail($user->role_id)->permissions);
                     $response = array(
                         'status' => 'ok',
+                        'token' => $token,
                         'usuario' => $user
                     );
                 }
@@ -161,6 +168,21 @@ class UserController extends Controller
         }
 
         return response()->json(['data' => $response],200);
+    }
+
+    public function RefreshToken(Request $request)
+    {
+        $user = auth('api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'No autorizado'], 401);
+        }
+
+        $token = \Illuminate\Support\Str::random(60);
+        $user->api_token = hash('sha256', $token);
+        $user->token_expires_at = now()->addHours(12);
+        $user->save();
+
+        return response()->json(['token' => $token], 200);
     }
 
     public function Lista()

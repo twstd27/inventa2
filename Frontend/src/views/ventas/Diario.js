@@ -130,6 +130,7 @@ const DiarioVentas = () => {
       },
       { accessorKey: 'code', header: 'CÓDIGO' },
       { accessorKey: 'name', header: 'NOMBRE' },
+      { accessorKey: 'tipo_pago', header: 'PAGO' },
       { accessorKey: 'quantity', header: 'CANTIDAD' },
       { accessorKey: 'price', header: 'PRECIO' },
       {

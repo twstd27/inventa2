@@ -1,8 +1,10 @@
 import {
   CAlert,
   CButton,
+  CButtonGroup,
   CForm,
   CFormInput,
+  CFormLabel,
   CModal,
   CModalBody,
   CModalFooter,
@@ -48,6 +50,7 @@ export const ModalSucursales = () => {
           name,
           address,
           phone,
+          venta_sin_stock,
           user_id: usuario.id,
         })
       } else {
@@ -56,6 +59,7 @@ export const ModalSucursales = () => {
           name,
           address,
           phone,
+          venta_sin_stock,
         })
       }
     }
@@ -80,7 +84,7 @@ export const ModalSucursales = () => {
     return valid
   }
 
-  const { id, name, address, phone } = formValues
+  const { id, name, address, phone, venta_sin_stock } = formValues
 
   const CloseModal = () => {
     closeModal()
@@ -128,6 +132,37 @@ export const ModalSucursales = () => {
             value={phone || ''}
             onChange={handleInputChange}
           />
+          <div className="mt-3">
+            <CFormLabel>Venta sin stock</CFormLabel>
+            <CButtonGroup role="group" className="w-100">
+              <CButton
+                color={venta_sin_stock === null ? 'secondary' : 'outline-secondary'}
+                size="sm"
+                onClick={() => setFormValues({ ...formValues, venta_sin_stock: null })}
+              >
+                Global
+              </CButton>
+              <CButton
+                color={venta_sin_stock === true ? 'success' : 'outline-success'}
+                size="sm"
+                onClick={() => setFormValues({ ...formValues, venta_sin_stock: true })}
+              >
+                Permitir
+              </CButton>
+              <CButton
+                color={venta_sin_stock === false ? 'danger' : 'outline-danger'}
+                size="sm"
+                onClick={() => setFormValues({ ...formValues, venta_sin_stock: false })}
+              >
+                Bloquear
+              </CButton>
+            </CButtonGroup>
+            <small className="text-muted">
+              {venta_sin_stock === null && 'Usa el parámetro global del sistema'}
+              {venta_sin_stock === true && 'Esta sucursal puede vender sin stock'}
+              {venta_sin_stock === false && 'Esta sucursal no puede vender sin stock'}
+            </small>
+          </div>
         </CModalBody>
         <CModalFooter>
           <CButton type="submit" color="primary" disabled={loading}>

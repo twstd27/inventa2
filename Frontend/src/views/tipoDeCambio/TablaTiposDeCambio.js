@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { colorBadge } from '../../helpers/global'
 import {
   useReactTable,
@@ -13,6 +13,7 @@ import {
   CPagination,
   CPaginationItem,
   CFormSelect,
+  CFormInput,
   CTable,
   CTableBody,
   CTableDataCell,
@@ -24,15 +25,34 @@ import { useUIStore } from '../../stores/useUIStore'
 import { useTipoDeCambioStore } from '../../stores/useTipoDeCambioStore'
 import CIcon from '@coreui/icons-react'
 import { cilCheckAlt, cilPencil, cilX, cilWarning } from '@coreui/icons'
+import { Trash2 } from 'lucide-react'
 
 const TablaTiposDeCambio = () => {
   const { openModal, openDialog } = useUIStore()
   const { tiposDeCambio, setTipoDeCambio } = useTipoDeCambioStore()
 
+  const [searchText, setSearchText] = useState('')
+  const [showDeleted, setShowDeleted] = useState(false)
+
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 })
 
+  useEffect(() => {
+    setPagination((p) => ({ ...p, pageIndex: 0 }))
+  }, [searchText, showDeleted])
+
+  const filteredData = useMemo(() => {
+    let d = showDeleted ? tiposDeCambio : tiposDeCambio.filter((x) => x.deleted_at === null)
+    if (searchText) {
+      const s = searchText.toLowerCase()
+      d = d.filter((x) => x.description?.toLowerCase().includes(s))
+    }
+    return d
+  }, [tiposDeCambio, searchText, showDeleted])
+
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / pagination.pageSize))
+
   const paginas = []
-  for (let i = 1; i <= Math.ceil(tiposDeCambio.length / pagination.pageSize); i++) {
+  for (let i = 1; i <= totalPages; i++) {
     paginas.push({ value: i, label: i })
   }
 
@@ -124,7 +144,7 @@ const TablaTiposDeCambio = () => {
   )
 
   const table = useReactTable({
-    data: tiposDeCambio,
+    data: filteredData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -135,6 +155,24 @@ const TablaTiposDeCambio = () => {
 
   return (
     <>
+      <div className="d-flex gap-2 mb-3 align-items-center flex-wrap">
+        <CFormInput
+          size="sm"
+          placeholder="Buscar..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          style={{ maxWidth: '300px' }}
+        />
+        <CButton
+          size="sm"
+          color={showDeleted ? 'warning' : 'secondary'}
+          variant="outline"
+          onClick={() => setShowDeleted(!showDeleted)}
+        >
+          <Trash2 size={14} className="me-1" />
+          {showDeleted ? 'Ocultar eliminados' : 'Ver eliminados'}
+        </CButton>
+      </div>
       <CTable hover bordered responsive>
         <CTableHead className="table-header-color">
           {table.getHeaderGroups().map((headerGroup) => (
@@ -173,7 +211,7 @@ const TablaTiposDeCambio = () => {
           {'>>'}
         </CPaginationItem>
         <div className="w-100 d-flex justify-content-between">
-          <span className="pt-1 mx-2">{`Página ${pagination.pageIndex + 1} de ${Math.max(1, Math.ceil(tiposDeCambio.length / pagination.pageSize))}`}</span>
+          <span className="pt-1 mx-2">{`Página ${pagination.pageIndex + 1} de ${totalPages}`}</span>
           <div className="flex items-center">
             <span>Ir a la página: </span>
             <CFormSelect

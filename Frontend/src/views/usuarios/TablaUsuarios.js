@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import {
   useReactTable,
   getCoreRowModel,
@@ -12,6 +12,7 @@ import {
   CPagination,
   CPaginationItem,
   CFormSelect,
+  CFormInput,
   CTable,
   CTableBody,
   CTableDataCell,
@@ -24,18 +25,43 @@ import { useUsuariosStore } from '../../stores/useUsuariosStore'
 import { colorBadge } from '../../helpers/global'
 import CIcon from '@coreui/icons-react'
 import { cilCheckAlt, cilPencil, cilX } from '@coreui/icons'
+import { Trash2 } from 'lucide-react'
 
 const TablaUsuarios = () => {
   const { openModal, openDialog } = useUIStore()
   const { usuarios, setUsuario } = useUsuariosStore()
+
+  const [searchText, setSearchText] = useState('')
+  const [showDeleted, setShowDeleted] = useState(false)
 
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 5,
   })
 
+  useEffect(() => {
+    setPagination((p) => ({ ...p, pageIndex: 0 }))
+  }, [searchText, showDeleted])
+
+  const filteredData = useMemo(() => {
+    let d = showDeleted ? usuarios : usuarios.filter((x) => x.deleted_at === null)
+    if (searchText) {
+      const s = searchText.toLowerCase()
+      d = d.filter(
+        (x) =>
+          x.name?.toLowerCase().includes(s) ||
+          x.lastname?.toLowerCase().includes(s) ||
+          x.email?.toLowerCase().includes(s) ||
+          x.phone?.toLowerCase().includes(s),
+      )
+    }
+    return d
+  }, [usuarios, searchText, showDeleted])
+
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / pagination.pageSize))
+
   const paginas = []
-  for (let i = 1; i <= Math.ceil(usuarios.length / pagination.pageSize); i++) {
+  for (let i = 1; i <= totalPages; i++) {
     paginas.push({ value: i, label: i })
   }
 
@@ -142,7 +168,7 @@ const TablaUsuarios = () => {
   )
 
   const table = useReactTable({
-    data: usuarios,
+    data: filteredData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -155,6 +181,24 @@ const TablaUsuarios = () => {
 
   return (
     <>
+      <div className="d-flex gap-2 mb-3 align-items-center flex-wrap">
+        <CFormInput
+          size="sm"
+          placeholder="Buscar..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          style={{ maxWidth: '300px' }}
+        />
+        <CButton
+          size="sm"
+          color={showDeleted ? 'warning' : 'secondary'}
+          variant="outline"
+          onClick={() => setShowDeleted(!showDeleted)}
+        >
+          <Trash2 size={14} className="me-1" />
+          {showDeleted ? 'Ocultar eliminados' : 'Ver eliminados'}
+        </CButton>
+      </div>
       <CTable hover bordered responsive>
         <CTableHead className="table-header-color">
           {table.getHeaderGroups().map((headerGroup) => (
@@ -196,7 +240,7 @@ const TablaUsuarios = () => {
           {'>>'}
         </CPaginationItem>
         <div className="w-100 d-flex justify-content-between">
-          <span className="pt-1 mx-2">{`Página ${pagination.pageIndex + 1} de ${Math.ceil(usuarios.length / pagination.pageSize)}`}</span>
+          <span className="pt-1 mx-2">{`Página ${pagination.pageIndex + 1} de ${totalPages}`}</span>
           <div className="flex items-center">
             <span className="flex items-center">Ir a la página: </span>
             <CFormSelect

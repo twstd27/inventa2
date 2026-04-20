@@ -15,7 +15,8 @@ class Branch extends Model
         'name',
         'address',
         'phone',
-        'user_id'
+        'user_id',
+        'venta_sin_stock'
     ];
 
     public function user()

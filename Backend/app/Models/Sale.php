@@ -20,6 +20,7 @@ class Sale extends Model
         'doc_total',
         'doc_date',
         'comments',
+        'tipo_pago',
         'user_id'
     ];
 

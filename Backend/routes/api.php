@@ -27,78 +27,86 @@ use App\Http\Controllers\UserController;
 |
 */
 
-//Usuarios
-Route::post('login',[UserController::class, 'Login']);
-Route::get('users/lista',[UserController::class, 'Lista']);
-Route::post('users/{id}/restore',[UserController::class, 'Restore']);
-Route::resource('users', UserController::class)->except(['create', 'edit']);
+// Rutas públicas
+Route::middleware(['throttle:5,1'])->group(function () {
+    Route::post('login', [UserController::class, 'Login']);
+});
 
-//Roles
-Route::get('roles/combo',[RoleController::class, 'RoleCombo']);
-Route::post('roles/{id}/restore',[RoleController::class, 'Restore']);
-Route::resource('roles', RoleController::class)->except(['create', 'edit']);
+// Ruta de renovación de token (requiere token actual válido)
+Route::middleware(['auth:api', 'token.expiry'])->post('auth/refresh', [UserController::class, 'RefreshToken']);
 
-//Marcas
-Route::get('brands/combo',[BrandController::class, 'BrandCombo']);
-Route::post('brands/{id}/restore',[BrandController::class, 'Restore']);
-Route::resource('brands', BrandController::class)->except(['create', 'edit']);
+// Rutas protegidas — requieren autenticación
+Route::middleware(['auth:api', 'token.expiry'])->group(function () {
 
-//Categorias
-Route::get('categories/combo',[CategoryController::class, 'CategoryCombo']);
-Route::post('categories/{id}/restore',[CategoryController::class, 'Restore']);
-Route::resource('categories', CategoryController::class)->except(['create', 'edit']);
-//Route::resource('categories.products', 'CategoryProductController', ['only' => ['index']]);
+    //Usuarios
+    Route::get('users/lista', [UserController::class, 'Lista']);
+    Route::post('users/{id}/restore', [UserController::class, 'Restore']);
+    Route::resource('users', UserController::class)->except(['create', 'edit']);
 
-//Productos
-Route::get('products/combo',[ProductController::class, 'ProductCombo']);
-//Route::post('products/{id}/addimg',[ProductController::class, 'StoreImg']);
-Route::post('products/{id}/uploadimg',[ProductController::class, 'StoreImg']);
-//Route::post('products/{id}/removeimg',[ProductController::class, 'RemoveImg']);
-Route::post('products/{id}/deleteimg',[ProductController::class, 'RemoveImg']);
-Route::post('products/{id}/restore',[ProductController::class, 'Restore']);
-Route::get('products/lista',[ProductController::class, 'Lista']);
-Route::get('products/etiquetas',[ProductController::class, 'Etiquetas']);
-//Route::get('products/{id}/mostrar',[ProductController::class, 'MostrarProducto']);
-//Route::get('products/{id}/categories/data', 'ProductCategoryController@ProductCategories');
-//Route::put('products/{id}/categories/{id_category}/update', 'ProductCategoryController@BorrarActualizarCategoria');
-Route::resource('products', ProductController::class)->except(['create', 'edit']);
-//Route::resource('products.categories', 'ProductCategoryController', ['only' => ['index', 'update', 'destroy']]);
+    //Roles
+    Route::get('roles/combo', [RoleController::class, 'RoleCombo']);
+    Route::post('roles/{id}/restore', [RoleController::class, 'Restore']);
+    Route::resource('roles', RoleController::class)->except(['create', 'edit']);
 
-//Sucursales
-Route::get('branches/combo',[BranchController::class, 'BranchCombo']);
-Route::post('branches/{id}/restore',[BranchController::class, 'Restore']);
-Route::resource('branches', BranchController::class)->except(['create', 'edit']);
+    //Marcas
+    Route::get('brands/combo', [BrandController::class, 'BrandCombo']);
+    Route::post('brands/{id}/restore', [BrandController::class, 'Restore']);
+    Route::resource('brands', BrandController::class)->except(['create', 'edit']);
 
-//Entradas y Salidas
-Route::get('entries/entradas',[EntryController::class, 'Entradas']);
-Route::get('entries/salidas',[EntryController::class, 'Salidas']);
-Route::resource('entries', EntryController::class)->except(['create', 'edit']);
+    //Categorias
+    Route::get('categories/combo', [CategoryController::class, 'CategoryCombo']);
+    Route::post('categories/{id}/restore', [CategoryController::class, 'Restore']);
+    Route::resource('categories', CategoryController::class)->except(['create', 'edit']);
 
-//Detalle Entradas y Salidas
-Route::resource('entrydetails', EntryDetailController::class)->except(['create', 'edit']);
+    //Productos
+    Route::get('products/combo', [ProductController::class, 'ProductCombo']);
+    Route::post('products/{id}/uploadimg', [ProductController::class, 'StoreImg']);
+    Route::post('products/{id}/deleteimg', [ProductController::class, 'RemoveImg']);
+    Route::post('products/{id}/restore', [ProductController::class, 'Restore']);
+    Route::get('products/lista', [ProductController::class, 'Lista']);
+    Route::get('products/etiquetas', [ProductController::class, 'Etiquetas']);
+    Route::resource('products', ProductController::class)->except(['create', 'edit']);
 
-//Ventas
-Route::get('sales/lista',[SaleController::class, 'Lista']);
-Route::get('sales/diario',[SaleController::class, 'Diario']);
-Route::resource('sales', SaleController::class)->except(['create', 'edit']);
+    //Sucursales
+    Route::get('branches/combo', [BranchController::class, 'BranchCombo']);
+    Route::post('branches/{id}/restore', [BranchController::class, 'Restore']);
+    Route::resource('branches', BranchController::class)->except(['create', 'edit']);
 
-//Cotizaciones
-Route::get('quotations/lista',[QuotationController::class, 'Lista']);
-Route::resource('quotations', QuotationController::class)->except(['create', 'edit']);
+    //Entradas y Salidas
+    Route::get('entries/entradas', [EntryController::class, 'Entradas']);
+    Route::get('entries/salidas', [EntryController::class, 'Salidas']);
+    Route::resource('entries', EntryController::class)->except(['create', 'edit']);
 
-//Imagenes
-Route::resource('images', ImageController::class)->except(['create', 'edit']);
+    //Detalle Entradas y Salidas
+    Route::resource('entrydetails', EntryDetailController::class)->except(['create', 'edit']);
 
-//Parametros
-Route::post('params/{id}/restore',[ParamController::class, 'Restore']);
-Route::resource('params', ParamController::class)->except(['create', 'edit']);
+    //Ventas
+    Route::get('sales/lista', [SaleController::class, 'Lista']);
+    Route::get('sales/diario', [SaleController::class, 'Diario']);
+    Route::resource('sales', SaleController::class)->except(['create', 'edit']);
 
-//Precios
-Route::get('pricelists/combo',[PriceListController::class, 'PriceListCombo']);
-Route::post('pricelists/{id}/restore',[PriceListController::class, 'Restore']);
-Route::resource('pricelists', PriceListController::class)->except(['create', 'edit']);
+    //Cotizaciones
+    Route::get('quotations/lista', [QuotationController::class, 'Lista']);
+    Route::resource('quotations', QuotationController::class)->except(['create', 'edit']);
 
-//Tipos de Cambio
-Route::get('exchangerates/combo',[ExchangeRateController::class, 'ExchangeRateCombo']);
-Route::post('exchangerates/{id}/restore',[ExchangeRateController::class, 'Restore']);
-Route::resource('exchangerates', ExchangeRateController::class)->except(['create', 'edit']);
+    //Imagenes
+    Route::resource('images', ImageController::class)->except(['create', 'edit']);
+
+    //Parametros
+    Route::post('params/{id}/restore', [ParamController::class, 'Restore']);
+    Route::resource('params', ParamController::class)->except(['create', 'edit']);
+
+    //Precios
+    Route::get('pricelists/combo', [PriceListController::class, 'PriceListCombo']);
+    Route::post('pricelists/{id}/restore', [PriceListController::class, 'Restore']);
+    Route::resource('pricelists', PriceListController::class)->except(['create', 'edit']);
+
+    //Tipos de Cambio
+    Route::get('exchangerates/combo', [ExchangeRateController::class, 'ExchangeRateCombo']);
+    Route::post('exchangerates/{id}/restore', [ExchangeRateController::class, 'Restore']);
+    Route::resource('exchangerates', ExchangeRateController::class)->except(['create', 'edit']);
+
+    //Log de Auditoría
+    Route::get('auditlogs', [\App\Http\Controllers\AuditLogController::class, 'index']);
+
+});

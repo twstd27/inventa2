@@ -48,7 +48,7 @@ export const useCotizacionesStore = create((set) => ({
   resetCotizaciones: () => set({ error: emptyError, cotizacion: emptyCotizacion }),
 
   registerQuotation: async (sale) => {
-    const { startLoading, finishLoading, closeDialog } = useUIStore.getState()
+    const { startLoading, finishLoading, closeDialog, addToast } = useUIStore.getState()
     startLoading()
     delete sale.doc_date
     try {
@@ -56,11 +56,13 @@ export const useCotizacionesStore = create((set) => ({
       if (response.status === 201) {
         await useCotizacionesStore.getState().getCotizaciones()
         set({ error: emptyError })
+        addToast('success', 'Cotización registrada correctamente')
       }
       closeDialog()
     } catch (error) {
       if (import.meta.env.DEV) console.error('[dev]', error?.response?.status)
       set({ error: errorResponse(error) })
+      addToast('danger', 'Error al registrar la cotización')
     } finally {
       finishLoading()
     }

@@ -16,8 +16,15 @@ export const useVentasStore = create((set) => ({
   ventaImp: emptyVenta,
   error: emptyError,
 
-  getVentas: async (type = '', page = 1, limit = 5) => {
-    const URI = type === 'lista' ? '/sales/lista' : `/sales?page=${page}&limit=${limit}`
+  getVentas: async (type = '', page = 1, limit = 5, search = '', trashed = false, startDate = '', endDate = '', invoice = '') => {
+    let URI = type === 'lista' ? '/sales/lista' : `/sales?page=${page}&limit=${limit}`
+    if (type !== 'lista') {
+      if (search) URI += `&search=${encodeURIComponent(search)}`
+      if (trashed) URI += `&trashed=1`
+      if (startDate) URI += `&start_date=${startDate}`
+      if (endDate) URI += `&end_date=${endDate}`
+      if (invoice) URI += `&invoice=${invoice}`
+    }
     const { startLoading, finishLoading } = useUIStore.getState()
     startLoading()
     try {
@@ -57,7 +64,7 @@ export const useVentasStore = create((set) => ({
   resetVentas: () => set({ error: emptyError, venta: emptyVenta }),
 
   registerSale: async (sale) => {
-    const { startLoading, finishLoading, closeDialog } = useUIStore.getState()
+    const { startLoading, finishLoading, closeDialog, addToast } = useUIStore.getState()
     startLoading()
     delete sale.doc_date
     try {
@@ -65,25 +72,29 @@ export const useVentasStore = create((set) => ({
       if (response.status === 201) {
         await useVentasStore.getState().getVentas()
         set({ error: emptyError })
+        addToast('success', 'Venta registrada correctamente')
       }
       closeDialog()
     } catch (error) {
       set({ error: errorResponse(error) })
+      addToast('danger', 'Error al registrar la venta')
     } finally {
       finishLoading()
     }
   },
 
   deleteSale: async (sale) => {
-    const { startLoading, finishLoading, closeDialog } = useUIStore.getState()
+    const { startLoading, finishLoading, closeDialog, addToast } = useUIStore.getState()
     startLoading()
     try {
       await api.delete(`/sales/${sale.id}`)
       await useVentasStore.getState().getVentas()
       set({ error: emptyError })
       closeDialog()
+      addToast('success', 'Venta eliminada')
     } catch (error) {
       set({ error: errorResponse(error) })
+      addToast('danger', 'Error al eliminar la venta')
     } finally {
       finishLoading()
     }

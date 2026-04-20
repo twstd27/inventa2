@@ -1,6 +1,6 @@
 # Plan de Correcciones — InVenta2 Frontend
 > Ordenado por riesgo e impacto. Cada fix es atómico y testeable antes de seguir.
-> **Actualizado:** post-migración completa a Zustand (Abril 2026).
+> **Actualizado:** post-Fase 3 (Abril 2026).
 
 ---
 
@@ -22,7 +22,7 @@ El build compila sin errores ni warnings relevantes.
 | Fix | Descripción | Estado |
 |-----|-------------|--------|
 | 1.1 | Reducer duplicado en `uiReducer` | ✅ Eliminado (Redux removido) |
-| 1.2 | Memory leak en `AppHeader.js` | ⚠️ Pendiente de verificar |
+| 1.2 | Memory leak en `AppHeader.js` | ✅ Verificado — cleanup presente en línea 44 |
 | 1.3 | Sesión persistente + JWT | ✅ `useAuthStore` + `axiosInstance.js` |
 | 1.4 | `console.log` en producción | ✅ Stores no usan console.log de errores |
 | 1.5 | Race condition en `loading` | ✅ `loadingCount` entero en `useUIStore` |
@@ -34,9 +34,14 @@ El build compila sin errores ni warnings relevantes.
 | 2.1 | API URL a variables de entorno | ✅ `.env` con `VITE_API_URL` / `VITE_DISK_URL` |
 | 2.2 | Credenciales de prueba | ✅ Removidas al reescribir stores |
 | 2.3 | Axios centralizado | ✅ `src/helpers/axiosInstance.js` |
-| 2.4 | RBAC en rutas | ✅ `PrivateRoutes` con `allowedRoles` — ⚠️ falta aplicar en `AppRouter.js` |
+| 2.4 | RBAC en rutas | ✅ `allowedRoles` en `routes.js` + agrupación en `AppContent.js` |
 
-### 🔲 FASE 3 — Arquitectura — PENDIENTE
+### ✅ FASE 3 — Arquitectura — COMPLETADA
+
+| Fix | Descripción | Estado |
+|-----|-------------|--------|
+| 3.1 | Dividir `POS.js` | ✅ `pos/usePOSState.js` + `pos/ProductSearchPanel.js` + `pos/SaleDetailPanel.js` |
+| 3.2 | Completar o eliminar `Register.js` | ✅ Ruta eliminada de `AppRouter.js` (UI sin lógica, usuarios los crea el admin) |
 
 ---
 
@@ -44,118 +49,21 @@ El build compila sin errores ni warnings relevantes.
 
 ### Migración completa Redux → Zustand
 
-Se reemplazó toda la capa de Redux (store, reducers, actions, Provider) con 15 stores de Zustand ubicados en `src/stores/`. Cada store encapsula estado + acciones + llamadas a la API.
+Se reemplazó toda la capa de Redux con 15 stores de Zustand en `src/stores/`.
 
-**Archivos eliminados conceptualmente** (ya no se usan):
-- `src/store.js`
-- `src/reducers/` (todos)
-- `src/actions/` (todos)
+### RBAC aplicado en rutas
 
-**Archivos nuevos:**
-- `src/stores/useAuthStore.js` — con `persist` middleware
-- `src/stores/useUIStore.js` — loading counter + todos los modales
-- `src/stores/useLayoutStore.js`
-- `src/stores/useProductosStore.js`
-- `src/stores/useVentasStore.js`
-- `src/stores/useCotizacionesStore.js`
-- `src/stores/useStockStore.js`
-- `src/stores/useSucursalesStore.js`
-- `src/stores/useUsuariosStore.js`
-- `src/stores/useRolesStore.js`
-- `src/stores/useMarcasStore.js`
-- `src/stores/useCategoriasStore.js`
-- `src/stores/usePreciosStore.js`
-- `src/stores/useParamsStore.js`
-- `src/stores/useTipoDeCambioStore.js`
-- `src/helpers/axiosInstance.js`
-- `Frontend/.env`
-- `Frontend/.env.example`
+`routes.js` tiene `allowedRoles: [1]` en: `/usuarios`, `/roles`, `/sucursales`, `/parametros`, `/tiposdecambio`.
+`AppContent.js` agrupa esas rutas bajo `<Route element={<PrivateRoutes allowedRoles={[1]} />}>`.
 
-**Archivos modificados:**
-- `src/index.js` — removido Redux `Provider`
-- `src/App.js` — removido Redux `Provider`
-- `src/routers/PrivateRoutes.js` — usa `useAuthStore` + RBAC
-- `src/routers/AppRouter.js` — usa `useLayoutStore`
-- `src/types/types.js` — solo exporta `DISK` desde env variable
-- `src/views/ventas/Reportes.js` — fix CTabs + migración Zustand
-- Todos los componentes (~62 archivos) — migrados de `useSelector/useDispatch` a Zustand
+### División de POS.js
 
----
-
-## Pendientes inmediatos (antes de la Fase 3)
-
-### Pendiente A — Memory leak en `AppHeader.js`
-
-**Archivo:** `src/components/AppHeader.js`
-
-Verificar que el event listener de scroll tiene cleanup:
-
-```js
-// Debe verse así:
-useEffect(() => {
-  const handleScroll = () => {
-    headerRef.current &&
-      headerRef.current.classList.toggle('shadow-sm', document.documentElement.scrollTop > 0)
-  }
-  document.addEventListener('scroll', handleScroll)
-  return () => document.removeEventListener('scroll', handleScroll) // ← esto
-}, [])
-```
-
-**Testear:** Navegar entre rutas y hacer scroll — la sombra del header debe funcionar normalmente.
-
----
-
-### Pendiente B — Aplicar `allowedRoles` en `AppRouter.js`
-
-El componente `PrivateRoutes` ya soporta `allowedRoles` pero no se está usando en el router.
-
-**Archivo:** `src/routers/AppRouter.js`
-
-```jsx
-// Rutas que requieren role_id de admin (verificar el valor real en la BD)
-<Route element={<PrivateRoutes allowedRoles={[1]} />}>
-  <Route path="/usuarios" element={<Usuarios />} />
-  <Route path="/roles" element={<Roles />} />
-  <Route path="/sucursales" element={<Sucursales />} />
-  <Route path="/parametros" element={<Parametros />} />
-  <Route path="/tipo-de-cambio" element={<TipoDeCambio />} />
-</Route>
-```
-
-> Confirmar el `role_id` del admin contra la base de datos antes de aplicar.
-
-**Testear:**
-- Usuario no-admin → navegar a `/usuarios` → redirige a `/404`
-- Usuario admin → acceso normal
-
----
-
-## FASE 3 — Arquitectura (sprints futuros)
-
----
-
-### Fix 3.1 — Dividir `POS.js`
-
-**Archivo actual:** `src/views/ventas/POS.js` (~868 líneas)
-
-**Archivos a crear:**
-```
-src/views/ventas/pos/
-  ProductSearchPanel.js   — columna izquierda: búsqueda y grilla de productos
-  SaleDetailPanel.js      — columna derecha: líneas, totales, botón vender
-  usePOSState.js          — custom hook con toda la lógica y estados del carrito
-```
-
-`POS.js` queda como orquestador delgado que solo compone los tres anteriores.
-
-**Estrategia:** Extraer un componente a la vez, testeando el POS completo después de cada extracción.
-
----
-
-### Fix 3.2 — Completar o eliminar `Register.js`
-
-`src/views/pages/register/Register.js` tiene UI pero sin lógica de submit. Decidir si se va a usar o borrar para evitar confusión.
+| Archivo | Responsabilidad |
+|---------|----------------|
+| `src/views/ventas/pos/usePOSState.js` | Todo el estado, handlers y lógica del POS |
+| `src/views/ventas/pos/ProductSearchPanel.js` | Columna izquierda: selector de sucursal, buscador, grilla de productos |
+| `src/views/ventas/pos/SaleDetailPanel.js` | Columna derecha: líneas, totales, botón vender |
+| `src/views/ventas/POS.js` | Orquestador delgado (~50 líneas) |
 
 ---
 
@@ -174,6 +82,7 @@ src/views/ventas/pos/
 
 ### Seguridad
 - [ ] **Refresh tokens** — si el backend lo soporta, renovación automática antes de que expiren
+- [ ] **Historial de git** — si el repo alguna vez fue público, rotar credenciales que hayan estado en el historial
 
 ### Arquitectura
 - [ ] **TypeScript** — empezar por los stores (ya tienen estructura clara), luego helpers, luego componentes
@@ -181,16 +90,4 @@ src/views/ventas/pos/
 
 ---
 
-## Dependencias entre pendientes
-
-```
-Pendiente A (AppHeader leak)  ──── independiente, hacerlo ya
-Pendiente B (RBAC en router)  ──── independiente, hacerlo ya
-
-Fix 3.1 (dividir POS)         ──── independiente (refactor puro)
-Fix 3.2 (Register.js)         ──── independiente
-```
-
----
-
-*Plan actualizado: Abril 2026 (post-migración Zustand). Fases 1 y 2 completadas.*
+*Plan actualizado: Abril 2026 (Fases 1, 2 y 3 completadas).*

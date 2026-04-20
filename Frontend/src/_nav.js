@@ -1,6 +1,6 @@
 import React from 'react'
 import CIcon from '@coreui/icons-react'
-import { cilSpeedometer, cilDollar, cilTags, cilSwapHorizontal, cilCog } from '@coreui/icons'
+import { cilSpeedometer, cilDollar, cilTags, cilSwapHorizontal, cilCog, cilShieldAlt } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 
 const _nav = [
@@ -118,6 +118,12 @@ const _nav = [
         component: CNavItem,
         name: 'Parámetros del Sistema',
         to: '/parametros',
+      },
+      {
+        component: CNavItem,
+        name: 'Log de Actividad',
+        to: '/auditoria',
+        adminOnly: true,
       },
     ],
   },

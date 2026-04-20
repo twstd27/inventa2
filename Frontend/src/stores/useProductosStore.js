@@ -18,6 +18,7 @@ export const useProductosStore = create((set) => ({
   paginaActual: 1,
   ultimaPagina: 1,
   totalProductos: 0,
+  loadingMore: false,
   producto: emptyProducto,
   error: emptyError,
 
@@ -25,22 +26,43 @@ export const useProductosStore = create((set) => ({
     let URI = ''
     switch (type) {
       case 'combo': URI = '/products/combo'; break
-      case 'busqueda': URI = `/products?q=${data.buscar}&b=${data.sucursal}`; break
+      case 'busqueda': URI = `/products?q=${data.buscar}&b=${data.sucursal}&page=${page}`; break
+      case 'busqueda-append': URI = `/products?q=${data.buscar}&b=${data.sucursal}&page=${page}`; break
       case 'etiquetas': URI = '/products/etiquetas'; break
       default:
         URI = `/products/lista?page=${page}&limit=${limit}`
         if (data.search) URI += `&search=${encodeURIComponent(data.search)}`
+        if (data.trashed) URI += `&trashed=1`
         break
     }
     const { startLoading, finishLoading } = useUIStore.getState()
-    startLoading()
+    const isAppend = type === 'busqueda-append'
+
+    if (isAppend) {
+      set({ loadingMore: true })
+    } else {
+      startLoading()
+    }
+
     try {
       const response = await api.get(URI)
       switch (type) {
         case 'combo':
           set({ productosCombo: response.data.data }); break
         case 'busqueda':
-          set({ productos: response.data.data, paginaActual: 1, ultimaPagina: 10, totalProductos: 10 }); break
+          set({
+            productos: response.data.data,
+            paginaActual: response.data.current_page,
+            ultimaPagina: response.data.last_page,
+            totalProductos: response.data.total,
+          }); break
+        case 'busqueda-append':
+          set((state) => ({
+            productos: [...state.productos, ...response.data.data],
+            paginaActual: response.data.current_page,
+            ultimaPagina: response.data.last_page,
+            totalProductos: response.data.total,
+          })); break
         case 'etiquetas':
           set({ productosEtiqueta: response.data.data }); break
         default:
@@ -55,7 +77,11 @@ export const useProductosStore = create((set) => ({
     } catch (error) {
       if (import.meta.env.DEV) console.error('[dev]', error?.response?.status)
     } finally {
-      finishLoading()
+      if (isAppend) {
+        set({ loadingMore: false })
+      } else {
+        finishLoading()
+      }
     }
   },
 
@@ -81,7 +107,7 @@ export const useProductosStore = create((set) => ({
   resetProductosLista: () => set({ productos: [] }),
 
   registerProduct: async (product, files) => {
-    const { startLoading, finishLoading, closeModal } = useUIStore.getState()
+    const { startLoading, finishLoading, closeModal, addToast } = useUIStore.getState()
     startLoading()
     try {
       const response = await api.post('/products', product)
@@ -95,17 +121,19 @@ export const useProductosStore = create((set) => ({
         }
         await useProductosStore.getState().getProductos()
         set({ error: emptyError })
+        addToast('success', 'Producto creado correctamente')
       }
       closeModal()
     } catch (error) {
       set({ error: errorResponse(error) })
+      addToast('danger', 'Error al crear el producto')
     } finally {
       finishLoading()
     }
   },
 
   modifyProduct: async (product, files, deletefiles) => {
-    const { startLoading, finishLoading, closeModal } = useUIStore.getState()
+    const { startLoading, finishLoading, closeModal, addToast } = useUIStore.getState()
     startLoading()
     try {
       const response = await api.put(`/products/${product.id}`, product)
@@ -122,40 +150,46 @@ export const useProductosStore = create((set) => ({
         }
         await useProductosStore.getState().getProductos()
         set({ error: emptyError })
+        addToast('success', 'Producto actualizado correctamente')
       }
       closeModal()
     } catch (error) {
       set({ error: errorResponse(error) })
+      addToast('danger', 'Error al actualizar el producto')
     } finally {
       finishLoading()
     }
   },
 
   deleteProduct: async (product) => {
-    const { startLoading, finishLoading, closeDialog } = useUIStore.getState()
+    const { startLoading, finishLoading, closeDialog, addToast } = useUIStore.getState()
     startLoading()
     try {
       await api.delete(`/products/${product.id}`)
       await useProductosStore.getState().getProductos()
       set({ error: emptyError })
       closeDialog()
+      addToast('success', 'Producto eliminado')
     } catch (error) {
       set({ error: errorResponse(error) })
+      addToast('danger', 'Error al eliminar el producto')
     } finally {
       finishLoading()
     }
   },
 
   restoreProduct: async (product) => {
-    const { startLoading, finishLoading, closeDialog } = useUIStore.getState()
+    const { startLoading, finishLoading, closeDialog, addToast } = useUIStore.getState()
     startLoading()
     try {
       await api.post(`/products/${product.id}/restore`)
       await useProductosStore.getState().getProductos()
       set({ error: emptyError })
       closeDialog()
+      addToast('success', 'Producto restaurado')
     } catch (error) {
       set({ error: errorResponse(error) })
+      addToast('danger', 'Error al restaurar el producto')
     } finally {
       finishLoading()
     }

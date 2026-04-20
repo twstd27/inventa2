@@ -1,403 +1,322 @@
+import React, { useEffect, useState, useCallback } from 'react'
 import {
-  CAvatar,
-  CButton,
-  CButtonGroup,
   CCard,
   CCardBody,
-  CCardTitle,
-  CCardFooter,
   CCardHeader,
+  CCardTitle,
   CCol,
-  CProgress,
   CRow,
+  CBadge,
   CTable,
   CTableBody,
   CTableDataCell,
   CTableHead,
   CTableHeaderCell,
   CTableRow,
+  CButton,
+  CSpinner,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import {
-  cibCcAmex,
-  cibCcApplePay,
-  cibCcMastercard,
-  cibCcPaypal,
-  cibCcStripe,
-  cibCcVisa,
-  cibGoogle,
-  cibFacebook,
-  cibLinkedin,
-  cifBr,
-  cifEs,
-  cifFr,
-  cifIn,
-  cifPl,
-  cifUs,
-  cibTwitter,
-  cilCloudDownload,
-  cilPeople,
-  cilUser,
-  cilUserFemale,
-  cilQrCode,
-} from '@coreui/icons'
-
-import avatar1 from 'src/assets/images/avatars/1.jpg'
-import avatar2 from 'src/assets/images/avatars/2.jpg'
-import avatar3 from 'src/assets/images/avatars/3.jpg'
-import avatar4 from 'src/assets/images/avatars/4.jpg'
-import avatar5 from 'src/assets/images/avatars/5.jpg'
-import avatar6 from 'src/assets/images/avatars/6.jpg'
-
-import WidgetsBrand from '../widgets/WidgetsBrand'
-import WidgetsDropdown from '../widgets/WidgetsDropdown'
-import MainChart from './MainChart'
-
+import { cilQrCode, cilArrowTop, cilArrowBottom, cilMinus } from '@coreui/icons'
+import { CChartBar, CChartLine } from '@coreui/react-chartjs'
+import { TrendingUp, TrendingDown, ShoppingCart, Package, DollarSign, BarChart2, RefreshCw } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '../../stores/useAuthStore'
+import { format, subDays, startOfDay, endOfDay } from 'date-fns'
+import api from '../../helpers/axiosInstance'
+import { SkeletonDashboard } from '../../components/SkeletonLoader'
+
+const KPICard = ({ title, value, subtitle, icon: Icon, color, trend, trendValue }) => (
+  <CCard className="mb-4 border-0 shadow-sm">
+    <CCardBody>
+      <div className="d-flex justify-content-between align-items-start">
+        <div>
+          <div className="text-body-secondary small text-uppercase fw-semibold mb-1">{title}</div>
+          <div className="fs-4 fw-bold">{value}</div>
+          {subtitle && <div className="text-body-secondary small mt-1">{subtitle}</div>}
+        </div>
+        <div className={`p-2 rounded bg-${color} bg-opacity-10`}>
+          <Icon size={24} className={`text-${color}`} />
+        </div>
+      </div>
+      {trend !== undefined && (
+        <div className="mt-2 d-flex align-items-center gap-1">
+          {trend > 0 ? (
+            <CIcon icon={cilArrowTop} className="text-success" size="sm" />
+          ) : trend < 0 ? (
+            <CIcon icon={cilArrowBottom} className="text-danger" size="sm" />
+          ) : (
+            <CIcon icon={cilMinus} className="text-secondary" size="sm" />
+          )}
+          <span className={`small fw-semibold text-${trend > 0 ? 'success' : trend < 0 ? 'danger' : 'secondary'}`}>
+            {Math.abs(trendValue)}% vs ayer
+          </span>
+        </div>
+      )}
+    </CCardBody>
+  </CCard>
+)
 
 const Dashboard = () => {
-  const progressExample = [
-    { title: 'Visits', value: '29.703 Users', percent: 40, color: 'success' },
-    { title: 'Unique', value: '24.093 Users', percent: 20, color: 'info' },
-    { title: 'Pageviews', value: '78.706 Views', percent: 60, color: 'warning' },
-    { title: 'New Users', value: '22.123 Users', percent: 80, color: 'danger' },
-    { title: 'Bounce Rate', value: 'Average Rate', percent: 40.15, color: 'primary' },
-  ]
-
-  const progressGroupExample1 = [
-    { title: 'Monday', value1: 34, value2: 78 },
-    { title: 'Tuesday', value1: 56, value2: 94 },
-    { title: 'Wednesday', value1: 12, value2: 67 },
-    { title: 'Thursday', value1: 43, value2: 91 },
-    { title: 'Friday', value1: 22, value2: 73 },
-    { title: 'Saturday', value1: 53, value2: 82 },
-    { title: 'Sunday', value1: 9, value2: 69 },
-  ]
-
-  const progressGroupExample2 = [
-    { title: 'Male', icon: cilUser, value: 53 },
-    { title: 'Female', icon: cilUserFemale, value: 43 },
-  ]
-
-  const progressGroupExample3 = [
-    { title: 'Organic Search', icon: cibGoogle, percent: 56, value: '191,235' },
-    { title: 'Facebook', icon: cibFacebook, percent: 15, value: '51,223' },
-    { title: 'Twitter', icon: cibTwitter, percent: 11, value: '37,564' },
-    { title: 'LinkedIn', icon: cibLinkedin, percent: 8, value: '27,319' },
-  ]
-
-  const tableExample = [
-    {
-      avatar: { src: avatar1, status: 'success' },
-      user: {
-        name: 'Yiorgos Avraamu',
-        new: true,
-        registered: 'Jan 1, 2023',
-      },
-      country: { name: 'USA', flag: cifUs },
-      usage: {
-        value: 50,
-        period: 'Jun 11, 2023 - Jul 10, 2023',
-        color: 'success',
-      },
-      payment: { name: 'Mastercard', icon: cibCcMastercard },
-      activity: '10 sec ago',
-    },
-    {
-      avatar: { src: avatar2, status: 'danger' },
-      user: {
-        name: 'Avram Tarasios',
-        new: false,
-        registered: 'Jan 1, 2023',
-      },
-      country: { name: 'Brazil', flag: cifBr },
-      usage: {
-        value: 22,
-        period: 'Jun 11, 2023 - Jul 10, 2023',
-        color: 'info',
-      },
-      payment: { name: 'Visa', icon: cibCcVisa },
-      activity: '5 minutes ago',
-    },
-    {
-      avatar: { src: avatar3, status: 'warning' },
-      user: { name: 'Quintin Ed', new: true, registered: 'Jan 1, 2023' },
-      country: { name: 'India', flag: cifIn },
-      usage: {
-        value: 74,
-        period: 'Jun 11, 2023 - Jul 10, 2023',
-        color: 'warning',
-      },
-      payment: { name: 'Stripe', icon: cibCcStripe },
-      activity: '1 hour ago',
-    },
-    {
-      avatar: { src: avatar4, status: 'secondary' },
-      user: { name: 'Enéas Kwadwo', new: true, registered: 'Jan 1, 2023' },
-      country: { name: 'France', flag: cifFr },
-      usage: {
-        value: 98,
-        period: 'Jun 11, 2023 - Jul 10, 2023',
-        color: 'danger',
-      },
-      payment: { name: 'PayPal', icon: cibCcPaypal },
-      activity: 'Last month',
-    },
-    {
-      avatar: { src: avatar5, status: 'success' },
-      user: {
-        name: 'Agapetus Tadeáš',
-        new: true,
-        registered: 'Jan 1, 2023',
-      },
-      country: { name: 'Spain', flag: cifEs },
-      usage: {
-        value: 22,
-        period: 'Jun 11, 2023 - Jul 10, 2023',
-        color: 'primary',
-      },
-      payment: { name: 'Google Wallet', icon: cibCcApplePay },
-      activity: 'Last week',
-    },
-    {
-      avatar: { src: avatar6, status: 'danger' },
-      user: {
-        name: 'Friderik Dávid',
-        new: true,
-        registered: 'Jan 1, 2023',
-      },
-      country: { name: 'Poland', flag: cifPl },
-      usage: {
-        value: 43,
-        period: 'Jun 11, 2023 - Jul 10, 2023',
-        color: 'success',
-      },
-      payment: { name: 'Amex', icon: cibCcAmex },
-      activity: 'Last week',
-    },
-  ]
-
   const navigate = useNavigate()
+  const { usuario } = useAuthStore()
+  const isAdmin = usuario?.role_id === 1
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [kpis, setKpis] = useState({
+    ventasHoy: 0,
+    ventasAyer: 0,
+    ticketPromedio: 0,
+    totalTransaccionesHoy: 0,
+    topProductos: [],
+    ventasPorDia: [],
+  })
 
-  const handleGoToQR = () => {
-    navigate('/qr-scanner') // Cambia "/scanner" por la ruta que corresponda a tu componente escáner
+  const today = format(new Date(), 'yyyy-MM-dd')
+  const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd')
+  const sevenDaysAgo = format(subDays(new Date(), 6), 'yyyy-MM-dd')
+
+  const loadDashboard = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true)
+    else setLoading(true)
+
+    try {
+      const [resHoy, resAyer, resSemana] = await Promise.all([
+        api.get(`/sales/diario?start_date=${today}&end_date=${today}`).catch(() => ({ data: { data: [] } })),
+        api.get(`/sales/diario?start_date=${yesterday}&end_date=${yesterday}`).catch(() => ({ data: { data: [] } })),
+        api.get(`/sales/diario?start_date=${sevenDaysAgo}&end_date=${today}`).catch(() => ({ data: { data: [] } })),
+      ])
+
+      // Cada fila = 1 línea de detalle: { id (venta), doc_date "dd/MM/yyyy", name, quantity, price, cost, total, profit }
+      const ventasHoyData = resHoy.data.data || []
+      const ventasAyerData = resAyer.data.data || []
+      const ventasSemanaData = resSemana.data.data || []
+
+      // Total facturado = suma de la columna `total` (price * quantity por línea)
+      const sumarTotal = (arr) => arr.reduce((acc, v) => acc + parseFloat(v.total || 0), 0)
+      const ventasHoy = sumarTotal(ventasHoyData)
+      const ventasAyer = sumarTotal(ventasAyerData)
+
+      // Transacciones = ventas únicas (por id de venta, no por línea de detalle)
+      const ventasUnicas = new Set(ventasHoyData.map((v) => v.id))
+      const totalTransaccionesHoy = ventasUnicas.size
+      const ticketPromedio = totalTransaccionesHoy > 0 ? ventasHoy / totalTransaccionesHoy : 0
+
+      // Top productos del día — cada fila ya es un detalle con name + total
+      const productMap = {}
+      ventasHoyData.forEach((linea) => {
+        const name = linea.name || `Producto ${linea.product_id}`
+        if (!productMap[name]) productMap[name] = { name, cantidad: 0, total: 0 }
+        productMap[name].cantidad += parseFloat(linea.quantity || 0)
+        productMap[name].total += parseFloat(linea.total || 0)
+      })
+      const topProductos = Object.values(productMap)
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 5)
+
+      // Ventas por día (últimos 7 días)
+      // doc_date viene como "dd/MM/yyyy" — convertir a "yyyy-MM-dd" para el mapa
+      const diasMap = {}
+      for (let i = 6; i >= 0; i--) {
+        diasMap[format(subDays(new Date(), i), 'yyyy-MM-dd')] = 0
+      }
+      ventasSemanaData.forEach((v) => {
+        // Parsear "dd/MM/yyyy" → Date → "yyyy-MM-dd"
+        const parts = (v.doc_date || '').split('/')
+        if (parts.length === 3) {
+          const iso = `${parts[2]}-${parts[1]}-${parts[0]}`
+          if (diasMap[iso] !== undefined) diasMap[iso] += parseFloat(v.total || 0)
+        }
+      })
+      const ventasPorDia = Object.entries(diasMap).map(([fecha, total]) => ({
+        fecha: format(new Date(fecha + 'T12:00:00'), 'dd/MM'),
+        total,
+      }))
+
+      setKpis({
+        ventasHoy,
+        ventasAyer,
+        ticketPromedio,
+        totalTransaccionesHoy,
+        topProductos,
+        ventasPorDia,
+      })
+    } catch (err) {
+      if (import.meta.env.DEV) console.error('[dashboard]', err)
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }, [today, yesterday, sevenDaysAgo]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (isAdmin) loadDashboard()
+    else setLoading(false)
+  }, [loadDashboard, isAdmin])
+
+  const tendencia = kpis.ventasAyer > 0
+    ? Math.round(((kpis.ventasHoy - kpis.ventasAyer) / kpis.ventasAyer) * 100)
+    : kpis.ventasHoy > 0 ? 100 : 0
+
+  if (!isAdmin) {
+    return (
+      <div className="d-flex flex-column align-items-center justify-content-center" style={{ minHeight: '60vh' }}>
+        <CButton color="primary" size="lg" onClick={() => navigate('/qr-scanner')}>
+          <CIcon icon={cilQrCode} className="me-2" style={{ fontSize: '1.5rem' }} />
+          Escanear QR
+        </CButton>
+      </div>
+    )
   }
+
+  if (loading) return <SkeletonDashboard />
 
   return (
     <>
-      <CCard className="mb-4">
-        <CCardBody>
-          <CCardTitle>Escanear Productos</CCardTitle>
-        </CCardBody>
-        <CCardFooter className="text-center">
-          <CButton variant="outline" onClick={handleGoToQR}>
-            <CIcon icon={cilQrCode} size="9xl" />
-          </CButton>
-        </CCardFooter>
-      </CCard>
-      {/*Proximamente...*/}
-      {/* <WidgetsDropdown className="mb-4" />
-      <CCard className="mb-4">
-        <CCardBody>
-          <CRow>
-            <CCol sm={5}>
-              <h4 id="traffic" className="card-title mb-0">
-                Traffic
-              </h4>
-              <div className="small text-body-secondary">January - July 2023</div>
-            </CCol>
-            <CCol sm={7} className="d-none d-md-block">
-              <CButton color="primary" className="float-end">
-                <CIcon icon={cilCloudDownload} />
-              </CButton>
-              <CButtonGroup className="float-end me-3">
-                {['Day', 'Month', 'Year'].map((value) => (
-                  <CButton
-                    color="outline-secondary"
-                    key={value}
-                    className="mx-0"
-                    active={value === 'Month'}
-                  >
-                    {value}
-                  </CButton>
-                ))}
-              </CButtonGroup>
-            </CCol>
-          </CRow>
-          <MainChart />
-        </CCardBody>
-        <CCardFooter>
-          <CRow
-            xs={{ cols: 1, gutter: 4 }}
-            sm={{ cols: 2 }}
-            lg={{ cols: 4 }}
-            xl={{ cols: 5 }}
-            className="mb-2 text-center"
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h4 className="mb-0 fw-bold">Dashboard</h4>
+        <div className="d-flex gap-2">
+          <CButton
+            color="secondary"
+            variant="outline"
+            size="sm"
+            onClick={() => loadDashboard(true)}
+            disabled={refreshing}
           >
-            {progressExample.map((item, index, items) => (
-              <CCol
-                className={classNames({
-                  'd-none d-xl-block': index + 1 === items.length,
-                })}
-                key={index}
-              >
-                <div className="text-body-secondary">{item.title}</div>
-                <div className="fw-semibold text-truncate">
-                  {item.value} ({item.percent}%)
-                </div>
-                <CProgress thin className="mt-2" color={item.color} value={item.percent} />
-              </CCol>
-            ))}
-          </CRow>
-        </CCardFooter>
-      </CCard>
-      <WidgetsBrand className="mb-4" withCharts />
+            {refreshing ? <CSpinner size="sm" className="me-1" /> : <RefreshCw size={14} className="me-1" />}
+            Actualizar
+          </CButton>
+          <CButton color="primary" variant="outline" size="sm" onClick={() => navigate('/qr-scanner')}>
+            <CIcon icon={cilQrCode} className="me-1" /> Escanear
+          </CButton>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
       <CRow>
-        <CCol xs>
+        <CCol sm="6" xl="3">
+          <KPICard
+            title="Ventas Hoy"
+            value={`Bs ${kpis.ventasHoy.toFixed(2)}`}
+            subtitle={`Ayer: Bs ${kpis.ventasAyer.toFixed(2)}`}
+            icon={DollarSign}
+            color="primary"
+            trend={tendencia}
+            trendValue={Math.abs(tendencia)}
+          />
+        </CCol>
+        <CCol sm="6" xl="3">
+          <KPICard
+            title="Transacciones Hoy"
+            value={kpis.totalTransaccionesHoy}
+            subtitle="Número de ventas"
+            icon={ShoppingCart}
+            color="success"
+          />
+        </CCol>
+        <CCol sm="6" xl="3">
+          <KPICard
+            title="Ticket Promedio"
+            value={`Bs ${kpis.ticketPromedio.toFixed(2)}`}
+            subtitle="Promedio por venta"
+            icon={BarChart2}
+            color="warning"
+          />
+        </CCol>
+        <CCol sm="6" xl="3">
+          <KPICard
+            title="Vs Ayer"
+            value={`${tendencia > 0 ? '+' : ''}${tendencia}%`}
+            subtitle={tendencia > 0 ? 'Por encima de ayer' : tendencia < 0 ? 'Por debajo de ayer' : 'Igual que ayer'}
+            icon={tendencia >= 0 ? TrendingUp : TrendingDown}
+            color={tendencia >= 0 ? 'success' : 'danger'}
+          />
+        </CCol>
+      </CRow>
+
+      <CRow>
+        {/* Gráfico de ventas últimos 7 días */}
+        <CCol lg="8">
           <CCard className="mb-4">
-            <CCardHeader>Traffic {' & '} Sales</CCardHeader>
+            <CCardHeader>
+              <CCardTitle className="mb-0">Ventas — Últimos 7 días</CCardTitle>
+            </CCardHeader>
             <CCardBody>
-              <CRow>
-                <CCol xs={12} md={6} xl={6}>
-                  <CRow>
-                    <CCol xs={6}>
-                      <div className="border-start border-start-4 border-start-info py-1 px-3">
-                        <div className="text-body-secondary text-truncate small">New Clients</div>
-                        <div className="fs-5 fw-semibold">9,123</div>
-                      </div>
-                    </CCol>
-                    <CCol xs={6}>
-                      <div className="border-start border-start-4 border-start-danger py-1 px-3 mb-3">
-                        <div className="text-body-secondary text-truncate small">
-                          Recurring Clients
-                        </div>
-                        <div className="fs-5 fw-semibold">22,643</div>
-                      </div>
-                    </CCol>
-                  </CRow>
-                  <hr className="mt-0" />
-                  {progressGroupExample1.map((item, index) => (
-                    <div className="progress-group mb-4" key={index}>
-                      <div className="progress-group-prepend">
-                        <span className="text-body-secondary small">{item.title}</span>
-                      </div>
-                      <div className="progress-group-bars">
-                        <CProgress thin color="info" value={item.value1} />
-                        <CProgress thin color="danger" value={item.value2} />
-                      </div>
-                    </div>
-                  ))}
-                </CCol>
-                <CCol xs={12} md={6} xl={6}>
-                  <CRow>
-                    <CCol xs={6}>
-                      <div className="border-start border-start-4 border-start-warning py-1 px-3 mb-3">
-                        <div className="text-body-secondary text-truncate small">Pageviews</div>
-                        <div className="fs-5 fw-semibold">78,623</div>
-                      </div>
-                    </CCol>
-                    <CCol xs={6}>
-                      <div className="border-start border-start-4 border-start-success py-1 px-3 mb-3">
-                        <div className="text-body-secondary text-truncate small">Organic</div>
-                        <div className="fs-5 fw-semibold">49,123</div>
-                      </div>
-                    </CCol>
-                  </CRow>
-
-                  <hr className="mt-0" />
-
-                  {progressGroupExample2.map((item, index) => (
-                    <div className="progress-group mb-4" key={index}>
-                      <div className="progress-group-header">
-                        <CIcon className="me-2" icon={item.icon} size="lg" />
-                        <span>{item.title}</span>
-                        <span className="ms-auto fw-semibold">{item.value}%</span>
-                      </div>
-                      <div className="progress-group-bars">
-                        <CProgress thin color="warning" value={item.value} />
-                      </div>
-                    </div>
-                  ))}
-
-                  <div className="mb-5"></div>
-
-                  {progressGroupExample3.map((item, index) => (
-                    <div className="progress-group" key={index}>
-                      <div className="progress-group-header">
-                        <CIcon className="me-2" icon={item.icon} size="lg" />
-                        <span>{item.title}</span>
-                        <span className="ms-auto fw-semibold">
-                          {item.value}{' '}
-                          <span className="text-body-secondary small">({item.percent}%)</span>
-                        </span>
-                      </div>
-                      <div className="progress-group-bars">
-                        <CProgress thin color="success" value={item.percent} />
-                      </div>
-                    </div>
-                  ))}
-                </CCol>
-              </CRow>
-
-              <br />
-
-              <CTable align="middle" className="mb-0 border" hover responsive>
-                <CTableHead className="text-nowrap">
-                  <CTableRow>
-                    <CTableHeaderCell className="bg-body-tertiary text-center">
-                      <CIcon icon={cilPeople} />
-                    </CTableHeaderCell>
-                    <CTableHeaderCell className="bg-body-tertiary">User</CTableHeaderCell>
-                    <CTableHeaderCell className="bg-body-tertiary text-center">
-                      Country
-                    </CTableHeaderCell>
-                    <CTableHeaderCell className="bg-body-tertiary">Usage</CTableHeaderCell>
-                    <CTableHeaderCell className="bg-body-tertiary text-center">
-                      Payment Method
-                    </CTableHeaderCell>
-                    <CTableHeaderCell className="bg-body-tertiary">Activity</CTableHeaderCell>
-                  </CTableRow>
-                </CTableHead>
-                <CTableBody>
-                  {tableExample.map((item, index) => (
-                    <CTableRow v-for="item in tableItems" key={index}>
-                      <CTableDataCell className="text-center">
-                        <CAvatar size="md" src={item.avatar.src} status={item.avatar.status} />
-                      </CTableDataCell>
-                      <CTableDataCell>
-                        <div>{item.user.name}</div>
-                        <div className="small text-body-secondary text-nowrap">
-                          <span>{item.user.new ? 'New' : 'Recurring'}</span> | Registered:{' '}
-                          {item.user.registered}
-                        </div>
-                      </CTableDataCell>
-                      <CTableDataCell className="text-center">
-                        <CIcon size="xl" icon={item.country.flag} title={item.country.name} />
-                      </CTableDataCell>
-                      <CTableDataCell>
-                        <div className="d-flex justify-content-between text-nowrap">
-                          <div className="fw-semibold">{item.usage.value}%</div>
-                          <div className="ms-3">
-                            <small className="text-body-secondary">{item.usage.period}</small>
-                          </div>
-                        </div>
-                        <CProgress thin color={item.usage.color} value={item.usage.value} />
-                      </CTableDataCell>
-                      <CTableDataCell className="text-center">
-                        <CIcon size="xl" icon={item.payment.icon} />
-                      </CTableDataCell>
-                      <CTableDataCell>
-                        <div className="small text-body-secondary text-nowrap">Last login</div>
-                        <div className="fw-semibold text-nowrap">{item.activity}</div>
-                      </CTableDataCell>
-                    </CTableRow>
-                  ))}
-                </CTableBody>
-              </CTable>
+              {kpis.ventasPorDia.every((d) => d.total === 0) ? (
+                <div className="text-center py-4 text-body-secondary">
+                  <Package size={40} className="mb-2 opacity-50" />
+                  <p>Sin datos de ventas en los últimos 7 días</p>
+                </div>
+              ) : (
+                <CChartBar
+                  data={{
+                    labels: kpis.ventasPorDia.map((d) => d.fecha),
+                    datasets: [
+                      {
+                        label: 'Ventas (Bs)',
+                        backgroundColor: 'rgba(50, 115, 220, 0.6)',
+                        borderColor: 'rgba(50, 115, 220, 1)',
+                        borderWidth: 1,
+                        data: kpis.ventasPorDia.map((d) => d.total.toFixed(2)),
+                      },
+                    ],
+                  }}
+                  options={{
+                    plugins: { legend: { display: false } },
+                    scales: {
+                      y: { beginAtZero: true, ticks: { callback: (v) => `Bs ${v}` } },
+                    },
+                    responsive: true,
+                    maintainAspectRatio: true,
+                  }}
+                />
+              )}
             </CCardBody>
           </CCard>
         </CCol>
-      </CRow> */}
+
+        {/* Top productos del día */}
+        <CCol lg="4">
+          <CCard className="mb-4">
+            <CCardHeader>
+              <CCardTitle className="mb-0">Top Productos Hoy</CCardTitle>
+            </CCardHeader>
+            <CCardBody className="p-0">
+              {kpis.topProductos.length === 0 ? (
+                <div className="text-center py-4 text-body-secondary">
+                  <Package size={36} className="mb-2 opacity-50" />
+                  <p className="small">Sin ventas hoy</p>
+                </div>
+              ) : (
+                <CTable small borderless className="mb-0">
+                  <CTableHead>
+                    <CTableRow>
+                      <CTableHeaderCell className="text-body-secondary small">#</CTableHeaderCell>
+                      <CTableHeaderCell className="text-body-secondary small">Producto</CTableHeaderCell>
+                      <CTableHeaderCell className="text-body-secondary small text-end">Total</CTableHeaderCell>
+                    </CTableRow>
+                  </CTableHead>
+                  <CTableBody>
+                    {kpis.topProductos.map((p, i) => (
+                      <CTableRow key={i}>
+                        <CTableDataCell>
+                          <CBadge color={i === 0 ? 'warning' : i === 1 ? 'secondary' : 'light'} textColor={i >= 2 ? 'dark' : undefined}>
+                            {i + 1}
+                          </CBadge>
+                        </CTableDataCell>
+                        <CTableDataCell className="small">{p.name}</CTableDataCell>
+                        <CTableDataCell className="small text-end fw-semibold">
+                          Bs {p.total.toFixed(2)}
+                        </CTableDataCell>
+                      </CTableRow>
+                    ))}
+                  </CTableBody>
+                </CTable>
+              )}
+            </CCardBody>
+          </CCard>
+        </CCol>
+      </CRow>
     </>
   )
 }

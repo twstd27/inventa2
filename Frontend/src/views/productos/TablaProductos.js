@@ -26,12 +26,14 @@ import { useLayoutStore } from '../../stores/useLayoutStore'
 import { colorBadge } from '../../helpers/global'
 import CIcon from '@coreui/icons-react'
 import { cilCheckAlt, cilPencil, cilX, cilWarning, cilTag, cilPrint } from '@coreui/icons'
+import { Trash2 } from 'lucide-react'
 
 const TablaProductos = () => {
   const { openModal, openProductoEtiquetaModal, openProductosDialog } = useUIStore()
   const loading = useUIStore((s) => s.loadingCount > 0)
   const { productos, paginaActual, ultimaPagina, totalProductos, getProductos, setProducto } = useProductosStore()
   const [globalFilter, setGlobalFilter] = useState('')
+  const [showDeleted, setShowDeleted] = useState(false)
 
   const { theme } = useLayoutStore()
 
@@ -87,8 +89,8 @@ const TablaProductos = () => {
   }
 
   useEffect(() => {
-    getProductos('', { search: globalFilter }, pagination.pageIndex, pagination.pageSize)
-  }, [globalFilter, pagination])
+    getProductos('', { search: globalFilter, trashed: showDeleted }, pagination.pageIndex, pagination.pageSize)
+  }, [globalFilter, pagination, showDeleted])
 
   const handleKeyUp = ({ target }) => {
     clearTimeout(debounceTimer.current)
@@ -233,8 +235,22 @@ const TablaProductos = () => {
           </CBadge>
         </div>
       )}
-      <div className="mb-3">
-        <CFormInput placeholder="Buscar en la tabla..." onChange={handleKeyUp} />
+      <div className="d-flex gap-2 mb-3 align-items-center flex-wrap">
+        <CFormInput
+          size="sm"
+          placeholder="Buscar..."
+          onChange={handleKeyUp}
+          style={{ maxWidth: '300px' }}
+        />
+        <CButton
+          size="sm"
+          color={showDeleted ? 'warning' : 'secondary'}
+          variant="outline"
+          onClick={() => setShowDeleted(!showDeleted)}
+        >
+          <Trash2 size={14} className="me-1" />
+          {showDeleted ? 'Ocultar eliminados' : 'Ver eliminados'}
+        </CButton>
       </div>
       <CTable hover bordered responsive>
         <CTableHead>

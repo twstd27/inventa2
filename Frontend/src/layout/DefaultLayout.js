@@ -1,4 +1,5 @@
 import { AppContent, AppSidebar, AppFooter, AppHeader } from '../components/index'
+import GlobalToaster from '../components/GlobalToaster'
 
 const DefaultLayout = () => {
   return (
@@ -11,6 +12,7 @@ const DefaultLayout = () => {
         </div>
         <AppFooter />
       </div>
+      <GlobalToaster />
     </div>
   )
 }

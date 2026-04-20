@@ -72,7 +72,8 @@ class BranchController extends Controller
         $branch->fill($request->only([
             'name',
             'address',
-            'phone'
+            'phone',
+            'venta_sin_stock'
         ]));
 
         if($branch->isClean()){
@@ -133,6 +134,7 @@ class BranchController extends Controller
                 $branch->deleted_at,
                 $branch->updated_at
             );
+            // venta_sin_stock se mantiene para que el POS pueda leerlo
         });
 
         return response()->json(['data' => $branches], 200);

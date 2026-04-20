@@ -16,11 +16,16 @@ export const useStockStore = create((set) => ({
   entrada: emptyEntrada,
   error: emptyError,
 
-  getEntradas: async (page = 1, limit = 5) => {
+  getEntradas: async (page = 1, limit = 5, search = '', trashed = false, startDate = '', endDate = '') => {
     const { startLoading, finishLoading } = useUIStore.getState()
     startLoading()
     try {
-      const response = await api.get(`/entries/entradas?page=${page}&limit=${limit}`)
+      let url = `/entries/entradas?page=${page}&limit=${limit}`
+      if (search) url += `&search=${encodeURIComponent(search)}`
+      if (trashed) url += `&trashed=1`
+      if (startDate) url += `&start_date=${startDate}`
+      if (endDate) url += `&end_date=${endDate}`
+      const response = await api.get(url)
       set({
         entradas: response.data.data,
         ultimaPagina: response.data.last_page,
@@ -34,11 +39,16 @@ export const useStockStore = create((set) => ({
     }
   },
 
-  getSalidas: async (page = 1, limit = 5) => {
+  getSalidas: async (page = 1, limit = 5, search = '', trashed = false, startDate = '', endDate = '') => {
     const { startLoading, finishLoading } = useUIStore.getState()
     startLoading()
     try {
-      const response = await api.get(`/entries/salidas?page=${page}&limit=${limit}`)
+      let url = `/entries/salidas?page=${page}&limit=${limit}`
+      if (search) url += `&search=${encodeURIComponent(search)}`
+      if (trashed) url += `&trashed=1`
+      if (startDate) url += `&start_date=${startDate}`
+      if (endDate) url += `&end_date=${endDate}`
+      const response = await api.get(url)
       set({
         salidas: response.data.data,
         ultimaPagina: response.data.last_page,
@@ -57,7 +67,7 @@ export const useStockStore = create((set) => ({
   resetEntradas: () => set({ error: emptyError, entrada: emptyEntrada }),
 
   registerEntry: async (entry) => {
-    const { startLoading, finishLoading, closeModal } = useUIStore.getState()
+    const { startLoading, finishLoading, closeModal, addToast } = useUIStore.getState()
     startLoading()
     try {
       await api.post('/entries', entry)
@@ -66,15 +76,17 @@ export const useStockStore = create((set) => ({
       await store.getSalidas()
       set({ error: emptyError })
       closeModal()
+      addToast('success', 'Movimiento de stock registrado')
     } catch (error) {
       set({ error: errorResponse(error) })
+      addToast('danger', 'Error al registrar el movimiento')
     } finally {
       finishLoading()
     }
   },
 
   modifyEntry: async (entry) => {
-    const { startLoading, finishLoading, closeModal } = useUIStore.getState()
+    const { startLoading, finishLoading, closeModal, addToast } = useUIStore.getState()
     startLoading()
     try {
       await api.put(`/entries/${entry.id}`, entry)
@@ -83,38 +95,44 @@ export const useStockStore = create((set) => ({
       await store.getSalidas()
       set({ error: emptyError })
       closeModal()
+      addToast('success', 'Movimiento actualizado correctamente')
     } catch (error) {
       set({ error: errorResponse(error) })
+      addToast('danger', 'Error al actualizar el movimiento')
     } finally {
       finishLoading()
     }
   },
 
   deleteEntry: async (entry) => {
-    const { startLoading, finishLoading, closeDialog } = useUIStore.getState()
+    const { startLoading, finishLoading, closeDialog, addToast } = useUIStore.getState()
     startLoading()
     try {
       await api.delete(`/entries/${entry.id}`)
       await useStockStore.getState().getEntradas()
       set({ error: emptyError })
       closeDialog()
+      addToast('success', 'Movimiento eliminado')
     } catch (error) {
       set({ error: errorResponse(error) })
+      addToast('danger', 'Error al eliminar el movimiento')
     } finally {
       finishLoading()
     }
   },
 
   restoreEntry: async (entry) => {
-    const { startLoading, finishLoading, closeDialog } = useUIStore.getState()
+    const { startLoading, finishLoading, closeDialog, addToast } = useUIStore.getState()
     startLoading()
     try {
       await api.post(`/entries/${entry.id}/restore`)
       await useStockStore.getState().getEntradas()
       set({ error: emptyError })
       closeDialog()
+      addToast('success', 'Movimiento restaurado')
     } catch (error) {
       set({ error: errorResponse(error) })
+      addToast('danger', 'Error al restaurar el movimiento')
     } finally {
       finishLoading()
     }

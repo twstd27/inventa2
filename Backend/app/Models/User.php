@@ -20,16 +20,20 @@ class User extends Authenticatable
         'email',
         'phone',
         'password',
-        'role_id'
+        'role_id',
+        'api_token',
+        'token_expires_at',
     ];
 
     protected $hidden = [
         'password',
-        'remember_token'
+        'remember_token',
+        'api_token',
     ];
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'token_expires_at' => 'datetime',
     ];
 
     public static function generarVerificationToken()

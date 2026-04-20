@@ -17,6 +17,7 @@ import { useUIStore } from '../../stores/useUIStore'
 import { useProductosStore } from '../../stores/useProductosStore'
 import CIcon from '@coreui/icons-react'
 import { cilTag, cilPrint } from '@coreui/icons'
+import { Sparkles } from 'lucide-react'
 
 export const ModalDetalleProducto = (props) => {
   const { modalOpen, modalTitle, modalButton, closeModal, openProductoEtiquetaModal } = useUIStore()
@@ -65,7 +66,7 @@ export const ModalDetalleProducto = (props) => {
                 <CCarousel controls indicators interval={false}>
                   {producto.images.map((image) => (
                     <CCarouselItem key={image.id}>
-                      <img className="d-block w-100" src={`${DISK}/${image.name}`} alt="slide" />
+                      <img className="d-block w-100" src={`${DISK}/${image.name}`} alt="slide" onError={(e) => { e.target.src = './img/product_default.png' }} />
                     </CCarouselItem>
                   ))}
                 </CCarousel>
@@ -74,6 +75,21 @@ export const ModalDetalleProducto = (props) => {
               )}
             </CCardHeader>
             <CCardBody>
+              <CButton
+                color="dark"
+                variant="ghost"
+                size="sm"
+                title="Consultar en ChatGPT"
+                className="position-absolute top-0 end-0 m-1 p-1 bg-dark bg-opacity-50 text-white border-0"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  const query = encodeURIComponent(`dame más informacion sobre el producto:  ${producto?.marca} ${producto?.code} ${producto?.name}`)
+                  navigator.clipboard?.writeText(`dame más informacion sobre el producto:  ${producto?.marca} ${producto?.code} ${producto?.name}`).catch(() => {})
+                  window.open(`https://chatgpt.com/?q=${query}`, '_blank', 'noopener')
+                }}
+              >
+                <Sparkles size={14} />
+              </CButton>
               <table className="w-100 table-sm">
                 <tbody>
                   <tr>

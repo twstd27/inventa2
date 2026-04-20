@@ -37,16 +37,22 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-      if ($request->has('q')) {
-          $searchTerms = explode(' ', $request->get('q'));
-          $products = Product::where(function ($query) use ($searchTerms) {
+      $isPaginatedSearch = $request->has('q');
+
+      if ($isPaginatedSearch) {
+          $search = trim($request->get('q'));
+          $searchTerms = array_filter(explode(' ', $search));
+          $page = max(1, (int) $request->get('page', 1));
+
+          $baseQuery = Product::where(function ($query) use ($searchTerms) {
               foreach ($searchTerms as $term) {
-                  $query->where(function ($subQuery) use ($term) {
-                      $subQuery->where('name', 'like', '%' . $term . '%')
-                              ->orWhere('code', 'like', '%' . $term . '%');
-                  });
+                  $query->orWhere('name', 'like', '%' . $term . '%')
+                        ->orWhere('code', 'like', '%' . $term . '%');
               }
-          })->take(24)->get();
+          });
+
+          $paginator = $baseQuery->paginate(24, ['*'], 'page', $page);
+          $products = $paginator->getCollection();
       } else {
           $products = Product::all();
       }
@@ -110,7 +116,16 @@ class ProductController extends Controller
 
       });
 
-      return response()->json(['data' => $products],200);
+      if ($isPaginatedSearch) {
+          return response()->json([
+              'data'         => $products,
+              'current_page' => $paginator->currentPage(),
+              'last_page'    => $paginator->lastPage(),
+              'total'        => $paginator->total(),
+          ], 200);
+      }
+
+      return response()->json(['data' => $products], 200);
     }
 
     /**
@@ -296,7 +311,10 @@ class ProductController extends Controller
       $page = $request->input('page', 1);
       $search = $request->input('search', '');
 
-      $query = Product::withTrashed()->with(['categories', 'images']);
+      $trashed = $request->boolean('trashed', false);
+      $query = $trashed
+          ? Product::withTrashed()->with(['categories', 'images'])
+          : Product::with(['categories', 'images']);
 
       // Aplicar el filtro global con múltiples términos
       if (!empty($search)) {
@@ -440,6 +458,10 @@ class ProductController extends Controller
      */
     public function StoreImg($id, Request $request)
     {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,jpg,png,webp|max:2048',
+        ]);
+
         $product = Product::findOrFail($id);
         $path = $request->file('image')->store('images', 'public');
         Storage::disk('public')->setVisibility($path, 'public');

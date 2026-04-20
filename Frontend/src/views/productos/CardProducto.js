@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, memo } from 'react'
 import {
   CCard,
   CCardBody,
@@ -12,9 +12,9 @@ import {
   CPopover,
 } from '@coreui/react'
 import { DISK } from '../../types/types'
-import { ShoppingCart, Warehouse } from 'lucide-react'
+import { ShoppingCart, Warehouse, Sparkles } from 'lucide-react'
 
-export const CardProducto = (props) => {
+export const CardProducto = memo((props) => {
   const [state] = useState({ producto: props.producto })
   const { producto: product } = state
 
@@ -44,6 +44,21 @@ export const CardProducto = (props) => {
           }}
         />
         <CCardImageOverlay className="d-flex flex-column justify-content-end align-items-end p-0 position-relative">
+          <CButton
+            color="dark"
+            variant="ghost"
+            size="sm"
+            title="Consultar en ChatGPT"
+            className="position-absolute top-0 end-0 m-1 p-1 bg-dark bg-opacity-50 text-white border-0"
+            onClick={(e) => {
+              e.stopPropagation()
+              const query = encodeURIComponent(`dame más informacion sobre el producto:  ${product.marca} ${product.code} ${product.name}`)
+              navigator.clipboard?.writeText(`dame más informacion sobre el producto:  ${product.marca} ${product.code} ${product.name}`).catch(() => {})
+              window.open(`https://chatgpt.com/?q=${query}`, '_blank', 'noopener')
+            }}
+          >
+            <Sparkles size={14} />
+          </CButton>
           <CCardText
             className={`${product.quantity === '0.00' ? 'text-danger' : 'text-white'} bg-opacity-75 bg-primary px-2 py-1 fw-bold position-absolute end-0 bottom-0`}
           >
@@ -76,12 +91,12 @@ export const CardProducto = (props) => {
               >
                 <ShoppingCart size={16} />
               </CButton>
-              {/* <CPopover content="Agregar al carrito" placement="bottom" trigger={['hover']}>
-              </CPopover> */}
             </div>
           </div>
         </CCardBody>
       </CCard>
     </CCol>
   )
-}
+})
+
+CardProducto.displayName = 'CardProducto'

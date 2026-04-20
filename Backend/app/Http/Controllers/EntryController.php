@@ -120,18 +120,41 @@ class EntryController extends Controller
 
     public function Entradas(Request $request)
     {
-        $perPage = $request->input('per_page', 5);
-        $page = $request->input('page', 1);
-        
-        $validated = $request->validate([
-            'per_page' => 'integer|min:1|max:100',
-            'page' => 'integer|min:1',
-        ]);
+        $perPage   = $request->input('limit', 5);
+        $page      = $request->input('page', 1);
+        $search    = $request->input('search', '');
+        $trashed   = $request->boolean('trashed', false);
+        $startDate = $request->input('start_date', '');
+        $endDate   = $request->input('end_date', '');
 
-        $entradas = Entry::withTrashed()
-            ->where('type', 'entrada')
-            ->orderByDesc('id')
-            ->paginate($perPage);
+        $query = Entry::where('type', 'entrada')->orderByDesc('id');
+
+        if ($trashed) {
+            $query->withTrashed();
+        }
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('branch', function ($bq) use ($search) {
+                    $bq->where('name', 'like', "%$search%");
+                })
+                ->orWhere('comments', 'like', "%$search%")
+                ->orWhereHas('entryDetails', function ($eq) use ($search) {
+                    $eq->whereHas('product', function ($pq) use ($search) {
+                        $pq->where('name', 'like', "%$search%");
+                    });
+                });
+            });
+        }
+
+        if (!empty($startDate)) {
+            $query->whereDate('doc_date', '>=', $startDate);
+        }
+        if (!empty($endDate)) {
+            $query->whereDate('doc_date', '<=', $endDate);
+        }
+
+        $entradas = $query->paginate($perPage, ['*'], 'page', $page);
 
         $entradas->getCollection()->transform(function ($entry) {
             $entry->doc_date_format = date('d/m/Y', strtotime($entry->doc_date));
@@ -143,38 +166,47 @@ class EntryController extends Controller
         });
 
         return response()->json($entradas, 200);
-
-        // $entradas = Entry::withTrashed()
-        //     ->where('type', 'entrada')
-        //     ->get();
-
-        // $entradas->each(function ($entry) {
-        //     $entry->doc_date_format = date('d/m/Y', strtotime($entry->doc_date));
-        //     $entry->branch;
-        //     $entry->entryDetails->each(function ($entryDetail) {
-        //         $entryDetail->product;
-        //     });
-        // });
-
-        // return response()->json(['data' => $entradas],200);
     }
 
     public function Salidas(Request $request)
     {
-		$perPage = $request->input('per_page', 5);
-        $page = $request->input('page', 1);
-        
-        $validated = $request->validate([
-            'per_page' => 'integer|min:1|max:100',
-            'page' => 'integer|min:1',
-        ]);
+        $perPage   = $request->input('limit', 5);
+        $page      = $request->input('page', 1);
+        $search    = $request->input('search', '');
+        $trashed   = $request->boolean('trashed', false);
+        $startDate = $request->input('start_date', '');
+        $endDate   = $request->input('end_date', '');
 
-        $entradas = Entry::withTrashed()
-            ->where('type', 'salida')
-            ->orderByDesc('id')
-            ->paginate($perPage);
+        $query = Entry::where('type', 'salida')->orderByDesc('id');
 
-        $entradas->getCollection()->transform(function ($entry) {
+        if ($trashed) {
+            $query->withTrashed();
+        }
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('branch', function ($bq) use ($search) {
+                    $bq->where('name', 'like', "%$search%");
+                })
+                ->orWhere('comments', 'like', "%$search%")
+                ->orWhereHas('entryDetails', function ($eq) use ($search) {
+                    $eq->whereHas('product', function ($pq) use ($search) {
+                        $pq->where('name', 'like', "%$search%");
+                    });
+                });
+            });
+        }
+
+        if (!empty($startDate)) {
+            $query->whereDate('doc_date', '>=', $startDate);
+        }
+        if (!empty($endDate)) {
+            $query->whereDate('doc_date', '<=', $endDate);
+        }
+
+        $salidas = $query->paginate($perPage, ['*'], 'page', $page);
+
+        $salidas->getCollection()->transform(function ($entry) {
             $entry->doc_date_format = date('d/m/Y', strtotime($entry->doc_date));
             $entry->branch;
             $entry->entryDetails->each(function ($entryDetail) {
@@ -183,21 +215,7 @@ class EntryController extends Controller
             return $entry;
         });
 
-        return response()->json($entradas, 200);
-
-        // $entradas = Entry::withTrashed()
-        //     ->where('type', 'salida')
-        //     ->get();
-
-        // $entradas->each(function ($entry) {
-        //     $entry->doc_date_format = date('d/m/Y', strtotime($entry->doc_date));
-        //     $entry->branch;
-        //     $entry->entryDetails->each(function ($entryDetail) {
-        //         $entryDetail->product;
-        //     });
-        // });
-
-        // return response()->json(['data' => $entradas],200);
+        return response()->json($salidas, 200);
     }
 
 }

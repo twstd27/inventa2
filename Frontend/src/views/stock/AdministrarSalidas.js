@@ -68,21 +68,8 @@ const AdministrarSalidas = () => {
             </div>
           </CCardHeader>
           <CCardBody className="d-flex justify-content-between align-items-center">
-            <CButton
-              color="primary"
-              href="#"
-              onClick={(event) => {
-                event.preventDefault()
-                setVisible(!visible)
-              }}
-            >
-              Mostrar Filtros
-            </CButton>
-            <CCollapse visible={visible}>Proximamente...</CCollapse>
-          </CCardBody>
-          <CCardFooter>
             <TablaSalidas />
-          </CCardFooter>
+          </CCardBody>
         </CCard>
       </CCol>
       <ModalEntradas />

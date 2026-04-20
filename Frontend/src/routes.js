@@ -1,6 +1,7 @@
 import React from 'react'
 
 const Dashboard = React.lazy(() => import('./views/dashboard/Dashboard'))
+const LogDeActividad = React.lazy(() => import('./views/auditoria/LogDeActividad'))
 const Marcas = React.lazy(() => import('./views/marcas/AdministrarMarcas'))
 const Categorias = React.lazy(() => import('./views/categorias/AdministrarCategorias'))
 const Productos = React.lazy(() => import('./views/productos/AdministrarProductos'))
@@ -22,22 +23,23 @@ const routes = [
   { path: '/', exact: true, name: 'Home', element: Dashboard },
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
   { path: '/panel', name: 'Panel', element: Dashboard },
-  { path: '/usuarios', name: 'Usuarios', element: Usuarios },
-  { path: '/roles', name: 'Usuarios', element: Roles },
+  { path: '/usuarios', name: 'Usuarios', element: Usuarios, allowedRoles: [1] },
+  { path: '/roles', name: 'Roles', element: Roles, allowedRoles: [1] },
   { path: '/productos', name: 'Productos', element: Productos },
   { path: '/categorias', name: 'Categorias', element: Categorias },
   { path: '/marcas', name: 'Marcas', element: Marcas },
-  { path: '/sucursales', name: 'Sucursales', element: Sucursales },
+  { path: '/sucursales', name: 'Sucursales', element: Sucursales, allowedRoles: [1] },
   { path: '/entradas', name: 'Entradas', element: Entradas },
   { path: '/salidas', name: 'Salidas', element: Salidas },
   { path: '/POS', name: 'POS', element: POS },
   { path: '/cotizaciones', name: 'Cotizaciones', element: Cotizaciones },
   { path: '/reportes', name: 'Reportes de Ventas', element: Reportes },
-  { path: '/parametros', name: 'Parametros Generales', element: ParametrosGenerales },
+  { path: '/parametros', name: 'Parametros Generales', element: ParametrosGenerales, allowedRoles: [1] },
   // { path: '/listaprecios', name: 'Lista de Precios', element: ListaPrecios },
   { path: '/qr-scanner', name: 'Escaner QR', element: QRScanner },
   { path: '/etiquetas', name: 'Etiquetas', element: Etiquetas },
-  { path: '/tiposdecambio', name: 'Tipos de Cambio', element: TiposDeCambio },
+  { path: '/tiposdecambio', name: 'Tipos de Cambio', element: TiposDeCambio, allowedRoles: [1] },
+  { path: '/auditoria', name: 'Log de Actividad', element: LogDeActividad, allowedRoles: [1] },
 ]
 
 export default routes
