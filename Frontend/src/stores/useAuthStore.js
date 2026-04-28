@@ -17,8 +17,11 @@ export const useAuthStore = create(
         try {
           const response = await api.post('/login', { email, password })
           if (response.data.data.status === 'ok') {
-            const { usuario, token } = response.data.data
-            if (token) localStorage.setItem('token', token)
+            const { usuario, token, token_expires_at } = response.data.data
+            if (token) {
+              localStorage.setItem('token', token)
+              if (token_expires_at) localStorage.setItem('token_expires_at', token_expires_at)
+            }
             set({ logged: true, usuario, error: emptyError })
           } else {
             set({
@@ -37,6 +40,7 @@ export const useAuthStore = create(
 
       startLogout: () => {
         localStorage.removeItem('token')
+        localStorage.removeItem('token_expires_at')
         set({ logged: false, usuario: emptyUsuario })
         window.location.href = '/'
       },

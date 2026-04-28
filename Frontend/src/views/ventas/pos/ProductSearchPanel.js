@@ -20,6 +20,7 @@ export const ProductSearchPanel = memo(({
   openModalProducto,
   handleScrollEnd,
   loadingMore,
+  redondeo,
 }) => { // eslint-disable-line
   const scrollRef = useRef(null)
 
@@ -83,6 +84,7 @@ export const ProductSearchPanel = memo(({
                   producto={item}
                   agregar={() => handleClickAdd(item)}
                   modal={() => openModalProducto(item)}
+                  redondeo={redondeo}
                   key={x}
                 />
               ))}

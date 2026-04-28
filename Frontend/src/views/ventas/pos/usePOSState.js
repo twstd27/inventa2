@@ -11,7 +11,7 @@ import { useUIStore } from '../../../stores/useUIStore'
 import { useLayoutStore } from '../../../stores/useLayoutStore'
 import { useVentasStore } from '../../../stores/useVentasStore'
 import { useParamsStore } from '../../../stores/useParamsStore'
-import { SelectStyles } from '../../../helpers/global'
+import { SelectStyles, roundPrice } from '../../../helpers/global'
 
 const initialState = {
   lineas: [],
@@ -97,6 +97,8 @@ export const usePOSState = () => {
     setState((prev) => ({ ...prev, sucursalVenta: values }))
     buscarProducto(buscar, values.value)
   }, [buscar]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const redondeo = Number(params.find((p) => p.name === 'RedondeoPrecios')?.value ?? 0)
 
   // Determina si está activo el control de stock para la sucursal seleccionada.
   // Cascada: sucursal.venta_sin_stock !== null → usa sucursal; si null → usa params[2]
@@ -189,13 +191,15 @@ export const usePOSState = () => {
       return
     }
 
+    const precioRedondeado = roundPrice(Number(producto.price) || 0, redondeo)
+
     const aux = [
       ...lineas,
       {
         quantity: 1,
-        price: producto.price,
+        price: precioRedondeado,
         cost: producto.cost,
-        total: producto.price,
+        total: precioRedondeado,
         priceList: 1,
         minPrice: producto.price_wholesome,
         maxQuantity: producto.quantity,
@@ -351,6 +355,7 @@ export const usePOSState = () => {
     tipo_pago,
     stockControlActivo: stockControlActivo(),
     params,
+    redondeo,
     // derived
     loading,
     loadingMore,

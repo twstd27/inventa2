@@ -161,6 +161,7 @@ class UserController extends Controller
                     $response = array(
                         'status' => 'ok',
                         'token' => $token,
+                        'token_expires_at' => $user->token_expires_at->toIso8601String(),
                         'usuario' => $user
                     );
                 }
@@ -182,7 +183,7 @@ class UserController extends Controller
         $user->token_expires_at = now()->addHours(12);
         $user->save();
 
-        return response()->json(['token' => $token], 200);
+        return response()->json(['token' => $token, 'token_expires_at' => $user->token_expires_at->toIso8601String()], 200);
     }
 
     public function Lista()

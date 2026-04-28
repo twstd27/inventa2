@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import { CCard, CCardBody, CCol, CRow, CToaster } from '@coreui/react'
 import { Dialog } from '../common/Dialog'
 import { DialogVentas } from './DialogVentas'
@@ -37,6 +37,7 @@ const POS = () => {
                     openModalProducto={pos.openModalProducto}
                     handleScrollEnd={pos.handleScrollEnd}
                     loadingMore={pos.loadingMore}
+                    redondeo={pos.redondeo}
                   />
                 </CCol>
                 <CCol lg="6" xl="4">
@@ -71,3 +72,4 @@ const POS = () => {
 }
 
 export default POS
+

@@ -28,7 +28,9 @@ const processQueue = (error, token = null) => {
 const forceLogout = () => {
   if (isLoggingOut) return
   isLoggingOut = true
-  localStorage.clear()
+  localStorage.removeItem('token')
+  localStorage.removeItem('token_expires_at')
+  localStorage.removeItem('auth-storage')
   delete api.defaults.headers.common.Authorization
   window.location.href = '/#/login'
   setTimeout(() => { isLoggingOut = false }, 2000)
@@ -66,9 +68,11 @@ api.interceptors.response.use(
           { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } },
         )
         const newToken = response.data?.token
+        const newExpiry = response.data?.token_expires_at
         if (!newToken) throw new Error('No token in refresh response')
 
         localStorage.setItem('token', newToken)
+        if (newExpiry) localStorage.setItem('token_expires_at', newExpiry)
         api.defaults.headers.common.Authorization = `Bearer ${newToken}`
         processQueue(null, newToken)
         originalRequest.headers.Authorization = `Bearer ${newToken}`

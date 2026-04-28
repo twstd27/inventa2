@@ -177,6 +177,31 @@ const ParametrosGenerales = () => {
                 </CRow>
                 <hr style={{ borderTop: '1px dashed #4b4a4a' }} />
                 <CCardTitle>Productos</CCardTitle>
+                <CRow className="mt-2">
+                  <CCol style={{ marginLeft: '20px' }}>
+                    {(() => {
+                      const p = params.find((x) => x.name === 'RedondeoPrecios')
+                      if (!p) return null
+                      return (
+                        <>
+                          <CFormLabel>Redondeo de precios en POS</CFormLabel>
+                          <CFormSelect
+                            id={'param_' + p.id}
+                            name={'param_' + p.id}
+                            value={p.value}
+                            onChange={handleChange}
+                          >
+                            <option value="0">Sin redondeo</option>
+                            <option value="1">Al entero (Bs 1, 2, 3...)</option>
+                            <option value="5">Al múltiplo de 5 (Bs 5, 10, 15...)</option>
+                            <option value="10">Al múltiplo de 10 (Bs 10, 20, 30...)</option>
+                            <option value="50">Al múltiplo de 50 (Bs 50, 100, 150...)</option>
+                          </CFormSelect>
+                        </>
+                      )
+                    })()}
+                  </CCol>
+                </CRow>
                 <hr style={{ borderTop: '1px dashed #4b4a4a' }} />
                 <CCardTitle>Inventarios</CCardTitle>
                 <hr style={{ borderTop: '1px dashed #4b4a4a' }} />

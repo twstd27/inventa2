@@ -1,3 +1,9 @@
+export const roundPrice = (price, step) => {
+  const s = Number(step)
+  if (!s || s <= 0) return price
+  return Math.ceil(price / s) * s
+}
+
 export const errorResponse = (response) => {
   let err = {
     status: response.response.status,
