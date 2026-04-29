@@ -34,6 +34,7 @@ import { cilCog, cilSave } from '@coreui/icons'
 const ParametrosGenerales = () => {
   const [toast, addToast] = useState()
   const toaster = useRef(null)
+  const debounceTimers = useRef({})
   const [preciosCombo, setPreciosCombo] = useState([])
   const [params, setParams] = useState([])
   const [formLoading, setFormLoading] = useState(true)
@@ -72,27 +73,34 @@ const ParametrosGenerales = () => {
     setFormLoading(false)
   }, [])
 
-  const handleChange = async (e) => {
+  const handleChange = (e) => {
     if (formLoading) return
 
     const { name, value, type, checked } = e.target
     const idParam = parseInt(name.split('_')[1])
-
-    try {
-      await modifyParam(idParam, { value: type === 'checkbox' ? (checked ? '1' : '0') : value })
-      addToast(saveToast('success', 'Parámetro modificado'))
-    } catch (error) {
-      console.error('Error fetching params:', error)
-      addToast(saveToast('danger', 'error al modificar parámetro'))
-    }
+    const newValue = type === 'checkbox' ? (checked ? '1' : '0') : value
 
     setParams((prevParams) =>
       prevParams.map((param) =>
-        param.id === idParam
-          ? { ...param, value: type === 'checkbox' ? (checked ? '1' : '0') : value }
-          : param,
+        param.id === idParam ? { ...param, value: newValue } : param,
       ),
     )
+
+    if (type === 'text') {
+      clearTimeout(debounceTimers.current[idParam])
+      debounceTimers.current[idParam] = setTimeout(async () => {
+        try {
+          await modifyParam(idParam, { value: newValue })
+          addToast(saveToast('success', 'Parámetro modificado'))
+        } catch {
+          addToast(saveToast('danger', 'Error al modificar parámetro'))
+        }
+      }, 600)
+    } else {
+      modifyParam(idParam, { value: newValue })
+        .then(() => addToast(saveToast('success', 'Parámetro modificado')))
+        .catch(() => addToast(saveToast('danger', 'Error al modificar parámetro')))
+    }
   }
 
   const handleTipoCambioSelect = async (selected) => {
@@ -197,6 +205,28 @@ const ParametrosGenerales = () => {
                             <option value="10">Al múltiplo de 10 (Bs 10, 20, 30...)</option>
                             <option value="50">Al múltiplo de 50 (Bs 50, 100, 150...)</option>
                           </CFormSelect>
+                        </>
+                      )
+                    })()}
+                  </CCol>
+                </CRow>
+                <hr style={{ borderTop: '1px dashed #4b4a4a' }} />
+                <CCardTitle>Catálogo Público</CCardTitle>
+                <CRow className="mt-2">
+                  <CCol style={{ marginLeft: '20px' }}>
+                    {(() => {
+                      const p = params.find((x) => x.name === 'NumeroWhatsAppCatalogo')
+                      if (!p) return null
+                      return (
+                        <>
+                          <CFormLabel>Número de WhatsApp (NumeroWhatsAppCatalogo)</CFormLabel>
+                          <CFormInput
+                            id={'param_' + p.id}
+                            name={'param_' + p.id}
+                            value={p.value}
+                            onChange={handleChange}
+                            placeholder="591XXXXXXXXX"
+                          />
                         </>
                       )
                     })()}

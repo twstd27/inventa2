@@ -11,6 +11,14 @@ const emptyProducto = {
 }
 const emptyError = { status: '', message: '', errors: [] }
 
+const buildBusquedaURL = (data, page) => {
+  const qs = new URLSearchParams({ q: data.buscar || '', b: data.sucursal, page })
+  if (data.brand)    qs.set('brand',    data.brand)
+  if (data.category) qs.set('category', data.category)
+  if (data.sort && data.sort !== 'name_asc') qs.set('sort', data.sort)
+  return `/products?${qs.toString()}`
+}
+
 export const useProductosStore = create((set) => ({
   productos: [],
   productosCombo: [],
@@ -25,13 +33,13 @@ export const useProductosStore = create((set) => ({
   getProductos: async (type = '', data = {}, page = 1, limit = 5) => {
     let URI = ''
     switch (type) {
-      case 'combo': URI = '/products/combo'; break
-      case 'busqueda': URI = `/products?q=${data.buscar}&b=${data.sucursal}&page=${page}`; break
-      case 'busqueda-append': URI = `/products?q=${data.buscar}&b=${data.sucursal}&page=${page}`; break
-      case 'etiquetas': URI = '/products/etiquetas'; break
+      case 'combo':           URI = '/products/combo'; break
+      case 'busqueda':        URI = buildBusquedaURL(data, page); break
+      case 'busqueda-append': URI = buildBusquedaURL(data, page); break
+      case 'etiquetas':       URI = '/products/etiquetas'; break
       default:
         URI = `/products/lista?page=${page}&limit=${limit}`
-        if (data.search) URI += `&search=${encodeURIComponent(data.search)}`
+        if (data.search)  URI += `&search=${encodeURIComponent(data.search)}`
         if (data.trashed) URI += `&trashed=1`
         break
     }

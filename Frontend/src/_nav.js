@@ -1,6 +1,6 @@
 import React from 'react'
 import CIcon from '@coreui/icons-react'
-import { cilSpeedometer, cilDollar, cilTags, cilSwapHorizontal, cilCog, cilShieldAlt } from '@coreui/icons'
+import { cilSpeedometer, cilDollar, cilTags, cilSwapHorizontal, cilCog, cilShieldAlt, cilExternalLink } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 
 const _nav = [
@@ -13,6 +13,14 @@ const _nav = [
   {
     component: CNavTitle,
     name: 'Menú',
+  },
+  {
+    component: CNavItem,
+    name: 'Catálogo Público',
+    href: `${window.location.origin}/#/catalogo`,
+    target: '_blank',
+    rel: 'noopener noreferrer',
+    icon: <CIcon icon={cilExternalLink} customClassName="nav-icon" />,
   },
   {
     component: CNavGroup,

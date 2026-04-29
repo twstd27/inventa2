@@ -1,0 +1,115 @@
+<h2>Diseño del Catálogo Público</h2>
+<p class="subtitle">Dos pantallas: inicio con categorías → productos de la categoría seleccionada</p>
+
+<div class="section">
+  <h3>Pantalla 1 — /catalogo (inicio)</h3>
+  <div class="mockup">
+    <div class="mockup-header">https://bigtool.sblimportadora.com/#/catalogo</div>
+    <div class="mockup-body">
+      <div style="background:#1a1a2e;color:white;padding:20px 16px;text-align:center;margin-bottom:16px;border-radius:4px">
+        <div style="font-size:1.3rem;font-weight:700">Catálogo de Productos</div>
+        <div style="font-size:0.85rem;opacity:0.7;margin-top:4px">Seleccioná una categoría</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 8px">
+        <div style="border:1px solid #dee2e6;border-radius:8px;padding:20px 12px;text-align:center;background:#f8f9fa;cursor:pointer">
+          <div style="font-size:1.5rem;margin-bottom:6px">📦</div>
+          <div style="font-weight:600;font-size:0.9rem">Electrónica</div>
+        </div>
+        <div style="border:1px solid #dee2e6;border-radius:8px;padding:20px 12px;text-align:center;background:#f8f9fa;cursor:pointer">
+          <div style="font-size:1.5rem;margin-bottom:6px">📦</div>
+          <div style="font-weight:600;font-size:0.9rem">Ropa Deportiva</div>
+        </div>
+        <div style="border:1px solid #dee2e6;border-radius:8px;padding:20px 12px;text-align:center;background:#f8f9fa;cursor:pointer">
+          <div style="font-size:1.5rem;margin-bottom:6px">📦</div>
+          <div style="font-weight:600;font-size:0.9rem">Herramientas</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Pantalla 2 — /catalogo/electronica (productos)</h3>
+  <div class="mockup">
+    <div class="mockup-header">https://bigtool.sblimportadora.com/#/catalogo/electronica</div>
+    <div class="mockup-body">
+      <div style="background:#1a1a2e;color:white;padding:12px 16px;display:flex;align-items:center;gap:10px;border-radius:4px;margin-bottom:12px">
+        <span style="opacity:0.6;font-size:0.85rem">← Catálogo</span>
+        <span style="font-size:1.1rem;font-weight:700">Electrónica</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        <!-- Card producto catálogo -->
+        <div style="border:1px solid #dee2e6;border-radius:8px;overflow:hidden;background:white">
+          <div style="background:#e9ecef;height:90px;display:flex;align-items:center;justify-content:center;color:#6c757d;font-size:0.75rem">imagen</div>
+          <div style="padding:8px">
+            <div style="color:#0d6efd;font-size:0.7rem;font-weight:600">ELEC-001</div>
+            <div style="font-size:0.8rem;font-weight:600;line-height:1.2;margin:2px 0">Auriculares Bluetooth Pro</div>
+            <div style="color:#6c757d;font-size:0.7rem">Sony</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+              <span style="color:#198754;font-weight:700;font-size:0.95rem">Bs 250</span>
+              <span style="background:#25D366;color:white;border-radius:4px;padding:3px 6px;font-size:0.7rem;cursor:pointer">💬 WA</span>
+            </div>
+          </div>
+        </div>
+        <!-- Card 2 -->
+        <div style="border:1px solid #dee2e6;border-radius:8px;overflow:hidden;background:white">
+          <div style="background:#e9ecef;height:90px;display:flex;align-items:center;justify-content:center;color:#6c757d;font-size:0.75rem">imagen</div>
+          <div style="padding:8px">
+            <div style="color:#0d6efd;font-size:0.7rem;font-weight:600">CAB-042</div>
+            <div style="font-size:0.8rem;font-weight:600;line-height:1.2;margin:2px 0">Cable HDMI 4K 2m</div>
+            <div style="color:#6c757d;font-size:0.7rem">Anker</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+              <span style="color:#198754;font-weight:700;font-size:0.95rem">Bs 45</span>
+              <span style="background:#25D366;color:white;border-radius:4px;padding:3px 6px;font-size:0.7rem;cursor:pointer">💬 WA</span>
+            </div>
+          </div>
+        </div>
+        <!-- Card 3 -->
+        <div style="border:1px solid #dee2e6;border-radius:8px;overflow:hidden;background:white">
+          <div style="background:#e9ecef;height:90px;display:flex;align-items:center;justify-content:center;color:#6c757d;font-size:0.75rem">imagen</div>
+          <div style="padding:8px">
+            <div style="color:#0d6efd;font-size:0.7rem;font-weight:600">MON-007</div>
+            <div style="font-size:0.8rem;font-weight:600;line-height:1.2;margin:2px 0">Monitor LED 24"</div>
+            <div style="color:#6c757d;font-size:0.7rem">LG</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+              <span style="color:#198754;font-weight:700;font-size:0.95rem">Bs 1.200</span>
+              <span style="background:#25D366;color:white;border-radius:4px;padding:3px 6px;font-size:0.7rem;cursor:pointer">💬 WA</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Modal de detalle al hacer click en un producto</h3>
+  <div class="mockup">
+    <div class="mockup-body">
+      <div style="border:1px solid #dee2e6;border-radius:8px;background:white;max-width:480px;margin:0 auto">
+        <div style="padding:12px 16px;border-bottom:1px solid #dee2e6;display:flex;align-items:center;gap:8px">
+          <span style="font-weight:700">📦 Auriculares Bluetooth Pro</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+          <div style="background:#e9ecef;height:160px;display:flex;align-items:center;justify-content:center;color:#6c757d;font-size:0.8rem">imagen</div>
+          <div style="padding:12px;display:flex;flex-direction:column;gap:8px">
+            <div style="background:#e8f4fd;border-radius:4px;padding:2px 8px;font-size:0.75rem;color:#0d6efd;display:inline-block;width:fit-content">Electrónica</div>
+            <div>
+              <div style="color:#6c757d;font-size:0.72rem"># ELEC-001</div>
+              <div style="font-weight:700;font-size:0.95rem">Auriculares Bluetooth Pro</div>
+              <div style="color:#6c757d;font-size:0.8rem">Sony</div>
+            </div>
+            <div style="background:#f8f9fa;border-radius:6px;padding:8px;text-align:center">
+              <div style="font-size:0.7rem;color:#6c757d">Precio</div>
+              <div style="font-size:1.2rem;font-weight:700;color:#198754">Bs 250</div>
+            </div>
+            <button style="background:#25D366;color:white;border:none;border-radius:6px;padding:8px;width:100%;font-size:0.85rem;cursor:pointer">💬 Consultar por WhatsApp</button>
+          </div>
+        </div>
+        <div style="padding:12px;border-top:1px solid #dee2e6;font-size:0.82rem;color:#555">
+          Auriculares inalámbricos con cancelación activa de ruido, batería de 30 horas y micrófono integrado.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

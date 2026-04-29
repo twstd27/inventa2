@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BranchController;
+use App\Http\Controllers\CatalogoController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\EntryController;
@@ -30,6 +31,13 @@ use App\Http\Controllers\UserController;
 // Rutas públicas
 Route::middleware(['throttle:5,1'])->group(function () {
     Route::post('login', [UserController::class, 'Login']);
+});
+
+// Catálogo público (sin autenticación)
+Route::prefix('catalogo')->middleware(['throttle:60,1'])->group(function () {
+    Route::get('categories',        [CatalogoController::class, 'categories']);
+    Route::get('params',            [CatalogoController::class, 'params']);
+    Route::get('{slug}/products',   [CatalogoController::class, 'products']);
 });
 
 // Ruta de renovación de token (requiere token actual válido)

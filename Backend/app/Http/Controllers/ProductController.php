@@ -44,12 +44,26 @@ class ProductController extends Controller
           $searchTerms = array_filter(explode(' ', $search));
           $page = max(1, (int) $request->get('page', 1));
 
-          $baseQuery = Product::where(function ($query) use ($searchTerms) {
-              foreach ($searchTerms as $term) {
-                  $query->orWhere('name', 'like', '%' . $term . '%')
-                        ->orWhere('code', 'like', '%' . $term . '%');
-              }
-          });
+          $baseQuery = Product::query();
+
+          if (!empty($searchTerms)) {
+              $baseQuery->where(function ($query) use ($searchTerms) {
+                  foreach ($searchTerms as $term) {
+                      $query->orWhere('name', 'like', '%' . $term . '%')
+                            ->orWhere('code', 'like', '%' . $term . '%');
+                  }
+              });
+          }
+
+          if ($request->filled('brand')) {
+              $baseQuery->where('brand_id', (int) $request->brand);
+          }
+          if ($request->filled('category')) {
+              $baseQuery->whereHas('categories', function ($q) use ($request) {
+                  $q->where('categories.id', (int) $request->category);
+              });
+          }
+          $baseQuery->orderBy('name', $request->get('sort') === 'name_desc' ? 'desc' : 'asc');
 
           $paginator = $baseQuery->paginate(24, ['*'], 'page', $page);
           $products = $paginator->getCollection();
@@ -60,7 +74,7 @@ class ProductController extends Controller
         $products->each(function ($product) use ($request) {
 
           $product->marca = Brand::withTrashed()->findOrFail($product->brand_id)->name;
-          
+
           $query = DB::select("
               SELECT SUM(
                 CASE WHEN `a`.`type` = 'entrada'
@@ -72,7 +86,7 @@ class ProductController extends Controller
                     `b`.`product_id` = ".$product->id."
               GROUP BY `a`.`branch_id`,`b`.`product_id`
           ");
-          
+
           if(isset($query[0])){
               $product->quantity = ($query[0]->quantity == null) ? "0.00" : $query[0]->quantity;
           }
@@ -87,7 +101,7 @@ class ProductController extends Controller
           $auxPrice = round(($product->cost_usd * $exchange_rate * (1 + $product->price_percent)), 2);
           $auxPriceDiscount = round(($product->cost_usd * $exchange_rate * (1 + $product->discount_percent)), 2);
           $auxPriceWholesome = round(($product->cost_usd * $exchange_rate * (1 + $product->wholesome_percent)), 2);
-          
+
           $product->price = number_format((ceil($auxPrice * 2) / 2), 2, ".", "");
           $product->price_discount = number_format((ceil($auxPriceDiscount * 2) / 2), 2, ".", "");
           $product->price_wholesome = number_format((ceil($auxPriceWholesome * 2) / 2), 2, ".", "");
@@ -177,7 +191,7 @@ class ProductController extends Controller
         }
 
         $producto->marca = Brand::withTrashed()->findOrFail($producto->brand_id)->name;
-            
+
         $query = DB::select("
             SELECT SUM(
                 CASE WHEN `a`.`type` = 'entrada'
@@ -188,9 +202,9 @@ class ProductController extends Controller
                   `a`.`branch_id` = 1 AND
                   `b`.`product_id` = ".$producto->id."
             GROUP BY `a`.`branch_id`,`b`.`product_id`
-        "); 
+        ");
         // modificar branch_id CV 2 - BIGTOOL 1
-        
+
         if(isset($query[0])){
             $producto->quantity = ($query[0]->quantity == null) ? "0.00" : $query[0]->quantity;
         }
@@ -205,7 +219,7 @@ class ProductController extends Controller
         $auxPrice = round(($producto->cost_usd * $exchange_rate * (1 + $producto->price_percent)), 2);
         $auxPriceDiscount = round(($producto->cost_usd * $exchange_rate * (1 + $producto->discount_percent)), 2);
         $auxPriceWholesome = round(($producto->cost_usd * $exchange_rate * (1 + $producto->wholesome_percent)), 2);
-        
+
         $producto->price = number_format((ceil($auxPrice * 2) / 2), 2, ".", "");
         $producto->price_discount = number_format((ceil($auxPriceDiscount * 2) / 2), 2, ".", "");
         $producto->price_wholesome = number_format((ceil($auxPriceWholesome * 2) / 2), 2, ".", "");
@@ -234,9 +248,6 @@ class ProductController extends Controller
         });
 
         return response()->json(['producto' => $producto], 200);
-        // $producto = Product::findOrFail($id);
-
-        // return response()->json(['data' => $producto],200);
     }
 
     /**
@@ -316,9 +327,8 @@ class ProductController extends Controller
           ? Product::withTrashed()->with(['categories', 'images'])
           : Product::with(['categories', 'images']);
 
-      // Aplicar el filtro global con múltiples términos
       if (!empty($search)) {
-          $searchTerms = explode(' ', $search); // Dividir la búsqueda en términos
+          $searchTerms = explode(' ', $search);
           $query->where(function ($q) use ($searchTerms) {
               foreach ($searchTerms as $term) {
                   $q->where(function ($subQuery) use ($term) {
@@ -439,7 +449,7 @@ class ProductController extends Controller
         $er = $product->exchange_rate_id ? ExchangeRate::find($product->exchange_rate_id) : null;
         $exchange_rate = $er ? (float)$er->value : $global_exchange_rate;
 
-        $auxPrice = round(($product->cost_usd * $exchange_rate * (1 + $product->price_percent)), 2);  
+        $auxPrice = round(($product->cost_usd * $exchange_rate * (1 + $product->price_percent)), 2);
         $product->price = number_format((ceil($auxPrice * 2) / 2), 2, ".", "");
         unset(
             $product->price_percent
@@ -488,8 +498,6 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
 
         $borrar = Storage::disk('public')->delete('images/'.$imagen->name);
-
-        //$borrar = File::delete("storage/images/".$imagen->name);
 
         if($borrar){
             $product->images()->detach($imagen->id);

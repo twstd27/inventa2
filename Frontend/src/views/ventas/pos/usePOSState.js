@@ -11,6 +11,8 @@ import { useUIStore } from '../../../stores/useUIStore'
 import { useLayoutStore } from '../../../stores/useLayoutStore'
 import { useVentasStore } from '../../../stores/useVentasStore'
 import { useParamsStore } from '../../../stores/useParamsStore'
+import { useMarcasStore } from '../../../stores/useMarcasStore'
+import { useCategoriasStore } from '../../../stores/useCategoriasStore'
 import { SelectStyles, roundPrice } from '../../../helpers/global'
 
 const initialState = {
@@ -29,10 +31,14 @@ const initialState = {
   customer_number: '',
   tipo_pago: 'EFECTIVO',
   buscarPage: 1,
+  filtro_marca: null,
+  filtro_categoria: null,
+  filtro_sort: 'name_asc',
+  filtro_stock: false,
 }
 
 export const usePOSState = () => {
-  const { productos, loadingMore, resetProductosLista, setProducto, getProductos } = useProductosStore()
+  const { productos, loadingMore, totalProductos, resetProductosLista, setProducto, getProductos } = useProductosStore()
   const { usuario } = useAuthStore()
   const { sucursalesCombo, getSucursales } = useSucursalesStore()
   const loading = useUIStore((s) => s.loadingCount > 0)
@@ -40,6 +46,8 @@ export const usePOSState = () => {
   const { theme } = useLayoutStore()
   const { registerSale } = useVentasStore()
   const { getParams } = useParamsStore()
+  const { marcasCombo, getMarcas } = useMarcasStore()
+  const { categoriasCombo, getCategorias } = useCategoriasStore()
 
   const [toast, addToast] = useState()
   const [params, setParams] = useState([])
@@ -66,10 +74,16 @@ export const usePOSState = () => {
     customer_number,
     tipo_pago,
     buscarPage,
+    filtro_marca,
+    filtro_categoria,
+    filtro_sort,
+    filtro_stock,
   } = state
 
   useEffect(() => {
     getSucursales('combo')
+    getMarcas('combo')
+    getCategorias('combo')
     resetProductosLista()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -85,6 +99,8 @@ export const usePOSState = () => {
     fetchParams()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const redondeo = Number(params.find((p) => p.name === 'RedondeoPrecios')?.value ?? 0)
+
   const TotalDocumento = (lineas) => {
     return lineas.reduce((acc, linea) => acc + linea.total * 1, 0)
   }
@@ -95,13 +111,9 @@ export const usePOSState = () => {
 
   const handleSelectChangeBranch = useCallback((values) => {
     setState((prev) => ({ ...prev, sucursalVenta: values }))
-    buscarProducto(buscar, values.value)
-  }, [buscar]) // eslint-disable-line react-hooks/exhaustive-deps
+    buscarProducto(buscar, values.value, { filtro_marca, filtro_categoria, filtro_sort })
+  }, [buscar, filtro_marca, filtro_categoria, filtro_sort]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const redondeo = Number(params.find((p) => p.name === 'RedondeoPrecios')?.value ?? 0)
-
-  // Determina si está activo el control de stock para la sucursal seleccionada.
-  // Cascada: sucursal.venta_sin_stock !== null → usa sucursal; si null → usa params[2]
   const stockControlActivo = () => {
     if (sucursalVenta?.venta_sin_stock !== null && sucursalVenta?.venta_sin_stock !== undefined) {
       return !sucursalVenta.venta_sin_stock
@@ -164,29 +176,18 @@ export const usePOSState = () => {
 
     if (isQuantityInvalid) {
       openDialog(
-        <>
-          <TriangleAlert /> Cantidad Insuficiente
-        </>,
-        <span>
-          No hay suficiente existencia del producto <b>{producto.name}</b> en la sucursal{' '}
-          <b>{sucursalVenta.label}</b>
-        </span>,
-        '',
-        'Cerrar',
-        '',
+        <><TriangleAlert /> Cantidad Insuficiente</>,
+        <span>No hay suficiente existencia del producto <b>{producto.name}</b> en la sucursal <b>{sucursalVenta.label}</b></span>,
+        '', 'Cerrar', '',
       )
       return
     }
 
     if (productExists) {
       openDialog(
-        <>
-          <TriangleAlert /> Producto duplicado
-        </>,
+        <><TriangleAlert /> Producto duplicado</>,
         <span>El producto ya está incluído en la venta</span>,
-        '',
-        'Cerrar',
-        '',
+        '', 'Cerrar', '',
       )
       return
     }
@@ -248,13 +249,9 @@ export const usePOSState = () => {
     const result = lineas.find((obj) => obj.errorQuantity === true || obj.errorPrice === true)
     if (result) {
       openDialog(
-        <>
-          <TriangleAlert /> Alerta
-        </>,
+        <><TriangleAlert /> Alerta</>,
         <span>Hay errores en las líneas de detalle, solucionelos antes de continuar..</span>,
-        '',
-        'Cerrar',
-        '',
+        '', 'Cerrar', '',
       )
       return
     }
@@ -274,16 +271,9 @@ export const usePOSState = () => {
     }
 
     openVentasDialog(
-      <>
-        <TriangleAlert /> Confirmar Venta
-      </>,
-      <span>
-        está seguro que quiere realizar la venta por <b>BOB {docTotal}</b>?
-      </span>,
-      'Vender',
-      'Cerrar',
-      'crear',
-      nuevaVenta,
+      <><TriangleAlert /> Confirmar Venta</>,
+      <span>está seguro que quiere realizar la venta por <b>BOB {docTotal}</b>?</span>,
+      'Vender', 'Cerrar', 'crear', nuevaVenta,
     )
   }
 
@@ -291,35 +281,70 @@ export const usePOSState = () => {
     setState({ ...initialState, doc_date: format(Date.now(), 'yyyy-MM-dd') })
   }
 
-  const buscarProducto = (buscar, sucursal) => {
-    if (buscar !== '' && sucursal != null) {
-      setState((prev) => ({ ...prev, buscarPage: 1 }))
-      getProductos('busqueda', { buscar, sucursal }, 1)
-    }
+  const buscarProducto = (buscar, sucursal, filtros = {}) => {
+    if (sucursal == null) return
+    setState((prev) => ({ ...prev, buscarPage: 1 }))
+    getProductos('busqueda', {
+      buscar,
+      sucursal,
+      brand:    filtros.filtro_marca?.value    ?? null,
+      category: filtros.filtro_categoria?.value ?? null,
+      sort:     filtros.filtro_sort ?? 'name_asc',
+    }, 1)
   }
 
   const handleScrollEnd = useCallback(() => {
     const { paginaActual, ultimaPagina } = useProductosStore.getState()
     if (paginaActual >= ultimaPagina) return
     const nextPage = paginaActual + 1
-    getProductos('busqueda-append', { buscar, sucursal: sucursalVenta?.value }, nextPage)
-  }, [buscar, sucursalVenta, getProductos]) // eslint-disable-line react-hooks/exhaustive-deps
+    getProductos('busqueda-append', {
+      buscar,
+      sucursal: sucursalVenta?.value,
+      brand:    filtro_marca?.value    ?? null,
+      category: filtro_categoria?.value ?? null,
+      sort:     filtro_sort,
+    }, nextPage)
+  }, [buscar, sucursalVenta, filtro_marca, filtro_categoria, filtro_sort, getProductos]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleKeyUp = ({ target }) => {
     clearTimeout(debounceTimer.current)
     debounceTimer.current = setTimeout(() => {
-      buscarProducto(target.value, sucursalVenta?.value)
+      buscarProducto(target.value, sucursalVenta?.value, { filtro_marca, filtro_categoria, filtro_sort })
     }, 500)
   }
+
+  const handleFiltroMarca = useCallback((selected) => {
+    const next = { filtro_marca: selected }
+    setState((prev) => ({ ...prev, ...next }))
+    buscarProducto(buscar, sucursalVenta?.value, { filtro_marca: selected, filtro_categoria, filtro_sort })
+  }, [buscar, sucursalVenta, filtro_categoria, filtro_sort]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleFiltroCategoria = useCallback((selected) => {
+    const next = { filtro_categoria: selected }
+    setState((prev) => ({ ...prev, ...next }))
+    buscarProducto(buscar, sucursalVenta?.value, { filtro_marca, filtro_categoria: selected, filtro_sort })
+  }, [buscar, sucursalVenta, filtro_marca, filtro_sort]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleFiltroSort = useCallback(({ target }) => {
+    const sort = target.value
+    setState((prev) => ({ ...prev, filtro_sort: sort }))
+    buscarProducto(buscar, sucursalVenta?.value, { filtro_marca, filtro_categoria, filtro_sort: sort })
+  }, [buscar, sucursalVenta, filtro_marca, filtro_categoria]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleFiltroStock = useCallback(() => {
+    setState((prev) => ({ ...prev, filtro_stock: !prev.filtro_stock }))
+  }, [])
+
+  const limpiarFiltros = useCallback(() => {
+    setState((prev) => ({ ...prev, filtro_marca: null, filtro_categoria: null, filtro_sort: 'name_asc', filtro_stock: false }))
+    buscarProducto(buscar, sucursalVenta?.value, { filtro_marca: null, filtro_categoria: null, filtro_sort: 'name_asc' })
+  }, [buscar, sucursalVenta]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const openModalProducto = (producto) => {
     setProducto(producto)
     openModal(
-      <span>
-        {producto.code} - {producto.name}
-      </span>,
-      'Agregar',
-      '',
+      <span>{producto.code} - {producto.name}</span>,
+      'Agregar', '',
     )
   }
 
@@ -337,46 +362,29 @@ export const usePOSState = () => {
     setState({ ...initialState, doc_date: format(Date.now(), 'yyyy-MM-dd'), active: 1 })
   }
 
+  const hayFiltrosActivos = filtro_marca || filtro_categoria || filtro_sort !== 'name_asc' || filtro_stock
+
+  // Filtro de stock cliente (sobre la página actual)
+  const productosFiltrados = filtro_stock
+    ? productos.filter((p) => p.quantity !== '0.00')
+    : productos
+
   return {
     // state
-    doc_date,
-    comments,
-    errDocDate,
-    errBranch,
-    docTotal,
-    sucursalVenta,
-    lineas,
-    buscar,
-    active,
-    invoice,
-    invoice_number,
-    customer,
-    customer_number,
-    tipo_pago,
-    stockControlActivo: stockControlActivo(),
-    params,
-    redondeo,
+    doc_date, comments, errDocDate, errBranch, docTotal, sucursalVenta,
+    lineas, buscar, active, invoice, invoice_number, customer, customer_number,
+    tipo_pago, stockControlActivo: stockControlActivo(), params, redondeo,
+    filtro_marca, filtro_categoria, filtro_sort, filtro_stock, hayFiltrosActivos,
     // derived
-    loading,
-    loadingMore,
-    productos,
-    sucursalesCombo,
-    selectStyles,
-    toast,
-    toaster,
+    loading, loadingMore, productos: productosFiltrados, totalProductos,
+    sucursalesCombo, marcasCombo, categoriasCombo, selectStyles, toast, toaster,
     // handlers
-    handleStateChange,
-    handleSelectChangeBranch,
-    handleLineasChangeCantidad,
-    handleLineasChangePrecio,
-    handleClickAdd,
-    handleClickRemove,
-    handleScrollEnd,
-    Vender,
-    resetForm,
-    handleKeyUp,
-    openModalProducto,
-    TotalDocumento,
-    RealizarVenta,
+    handleStateChange, handleSelectChangeBranch,
+    handleLineasChangeCantidad, handleLineasChangePrecio,
+    handleClickAdd, handleClickRemove, handleScrollEnd,
+    Vender, resetForm, handleKeyUp, openModalProducto,
+    TotalDocumento, RealizarVenta,
+    handleFiltroMarca, handleFiltroCategoria, handleFiltroSort,
+    handleFiltroStock, limpiarFiltros,
   }
 }

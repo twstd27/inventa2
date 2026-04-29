@@ -15,6 +15,8 @@ const Login = React.lazy(() => import('../views/pages/login/Login'))
 const Page404 = React.lazy(() => import('../views/pages/page404/Page404'))
 const Page500 = React.lazy(() => import('../views/pages/page500/Page500'))
 const ImpCotizacion = React.lazy(() => import('../views/pages/print/cotizacion'))
+const CatalogoHome = React.lazy(() => import('../views/catalogo/CatalogoHome'))
+const CatalogoCategoria = React.lazy(() => import('../views/catalogo/CatalogoCategoria'))
 
 export const AppRouter = () => {
   const { isColorModeSet, setColorMode } = useColorModes('coreui-free-react-admin-template-theme')
@@ -38,6 +40,8 @@ export const AppRouter = () => {
           <Route exact path="/404" name="Page 404" element={<Page404 />} />
           <Route exact path="/500" name="Page 500" element={<Page500 />} />
           <Route exact path="/impresion/cotizacion" name="cotizacion" element={<ImpCotizacion />} />
+          <Route exact path="/catalogo" element={<CatalogoHome />} />
+          <Route exact path="/catalogo/:slug" element={<CatalogoCategoria />} />
           <Route element={<PrivateRoutes />}>
             <Route path="*" element={<DefaultLayout />} />
           </Route>

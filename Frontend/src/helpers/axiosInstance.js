@@ -79,7 +79,10 @@ api.interceptors.response.use(
         return api(originalRequest)
       } catch (_refreshError) {
         processQueue(_refreshError, null)
-        forceLogout()
+        // Solo forzar logout si el servidor rechazó el refresh (401/403), no por errores de red
+        if (_refreshError.response?.status === 401 || _refreshError.response?.status === 403) {
+          forceLogout()
+        }
         return Promise.reject(_refreshError)
       } finally {
         isRefreshing = false
