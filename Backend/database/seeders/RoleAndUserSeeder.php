@@ -13,13 +13,13 @@ class RoleAndUserSeeder extends Seeder
         $adminRole = DB::table('roles')->where('name', 'admin')->first();
 
         DB::table('users')->updateOrInsert(
-            ['email' => 'domadesign.bo@gmail.com'],
+            ['email' => 'inventa@mail.com'],
             [
                 'name'       => 'Admin',
                 'lastname'   => 'Sistema',
-                'email'      => 'domadesign.bo@gmail.com',
+                'email'      => 'inventa@mail.com',
                 'phone'      => null,
-                'password'   => Hash::make('Doma.12345'),
+                'password'   => Hash::make('password'),
                 'role_id'    => $adminRole->id,
                 'created_at' => now(),
                 'updated_at' => now(),
