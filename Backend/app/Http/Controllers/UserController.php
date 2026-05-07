@@ -154,14 +154,12 @@ class UserController extends Controller
                     // Generar nuevo token de API
                     $token = \Illuminate\Support\Str::random(60);
                     $user->api_token = hash('sha256', $token);
-                    $user->token_expires_at = now()->addHours(12);
                     $user->save();
 
                     $user->permissions = json_decode(Role::withTrashed()->findOrFail($user->role_id)->permissions);
                     $response = array(
                         'status' => 'ok',
                         'token' => $token,
-                        'token_expires_at' => $user->token_expires_at->toIso8601String(),
                         'usuario' => $user
                     );
                 }
@@ -180,10 +178,9 @@ class UserController extends Controller
 
         $token = \Illuminate\Support\Str::random(60);
         $user->api_token = hash('sha256', $token);
-        $user->token_expires_at = now()->addHours(12);
         $user->save();
 
-        return response()->json(['token' => $token, 'token_expires_at' => $user->token_expires_at->toIso8601String()], 200);
+        return response()->json(['token' => $token], 200);
     }
 
     public function Lista()

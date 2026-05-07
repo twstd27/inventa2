@@ -41,10 +41,10 @@ Route::prefix('catalogo')->middleware(['throttle:60,1'])->group(function () {
 });
 
 // Ruta de renovación de token (requiere token actual válido)
-Route::middleware(['auth:api', 'token.expiry'])->post('auth/refresh', [UserController::class, 'RefreshToken']);
+Route::middleware(['auth:api'])->post('auth/refresh', [UserController::class, 'RefreshToken']);
 
 // Rutas protegidas — requieren autenticación
-Route::middleware(['auth:api', 'token.expiry'])->group(function () {
+Route::middleware(['auth:api'])->group(function () {
 
     //Usuarios
     Route::get('users/lista', [UserController::class, 'Lista']);

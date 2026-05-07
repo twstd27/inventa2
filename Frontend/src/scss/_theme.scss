@@ -1,3 +1,6 @@
+﻿@use "@coreui/coreui/scss/variables" as *;
+@use "@coreui/coreui/scss/mixins" as *;
+
 body {
   background-color: var(--cui-tertiary-bg);
 }

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Entry;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\User;
@@ -28,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         // Auditoría automática de modelos críticos
+        Entry::observe(AuditObserver::class);
         Product::observe(AuditObserver::class);
         Sale::observe(AuditObserver::class);
         User::observe(AuditObserver::class);

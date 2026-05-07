@@ -1,6 +1,4 @@
-import React, { memo } from 'react'
-import { CCard, CCardBody, CCardImage, CCardText, CCol, CButton } from '@coreui/react'
-import { Tag } from 'lucide-react'
+﻿import React, { memo } from 'react'
 import CIcon from '@coreui/icons-react'
 import { cibWhatsapp } from '@coreui/icons'
 import { DISK } from '../../types/types'
@@ -11,57 +9,57 @@ export const CardCatalogo = memo(({ product, redondeo = 0, waNumber, onDetalle }
 
   const openWhatsApp = (e) => {
     e.stopPropagation()
-    const text = `Hola, quisiera consultar sobre la disponibilidad del producto: ${product.code} | ${product.name} | ${product.marca}`
+    const text = `Hola, quisiera consultar sobre la disponibilidad del producto: ${product.code} | ${product.name}${product.marca ? ` | ${product.marca}` : ''}`
     window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(text)}`, '_blank', 'noopener')
   }
 
+  const imgSrc = product?.images?.length > 0
+    ? `${DISK}/${product.images[0].name}`
+    : './img/product_default.png'
+
   return (
-    <CCol xs="6" lg="4" xl="3" className="p-1">
-      <CCard className="mb-1 h-100" style={{ cursor: 'pointer' }}>
-        <CCardImage
-          style={{ height: '110px', objectFit: 'cover', objectPosition: 'center' }}
-          onClick={() => onDetalle(product)}
-          src={
-            product?.images?.length > 0
-              ? `${DISK}/${product.images[0].name}`
-              : './img/product_default.png'
-          }
-          alt="img"
-          loading="lazy"
-          onError={(e) => { e.target.src = './img/product_default.png' }}
-        />
+    <div className="catalogo-card" style={{border: '1px solid #cecece'}}>
+      {/* Image + marca badge */}
+      <div className="catalogo-card__img-wrap">
+        <div className="catalogo-card__img" onClick={() => onDetalle(product)}>
+          <img
+            src={imgSrc}
+            alt={product.name}
+            loading="lazy"
+            onError={(e) => { e.target.src = './img/product_default.png' }}
+          />
+        </div>
+        {product.marca && (
+          <div className="catalogo-card__marca-badge">{product.marca}</div>
+        )}
+      </div>
 
-        <CCardBody className="p-2 d-flex flex-column gap-1">
-          <div onClick={() => onDetalle(product)}>
-            <div className="text-primary fw-bold" style={{ fontSize: '0.72rem' }}>{product?.code}</div>
-            <div className="fw-semibold lh-sm" style={{ fontSize: '0.80rem', color: '#212529' }}>{product?.name}</div>
-            {product?.marca ? (
-              <div className="d-flex align-items-center gap-1" style={{ fontSize: '0.72rem', color: '#495057' }}>
-                <Tag size={11} /> {product.marca}
-              </div>
-            ) : null}
-          </div>
+      {/* Content */}
+      <div className="catalogo-card__body">
+        <div className="catalogo-card__name" onClick={() => onDetalle(product)}>
+          {product.name}
+        </div>
 
-          <div className="d-flex justify-content-between align-items-center mt-auto pt-1">
-            <span className="fw-bold text-success" style={{ fontSize: '0.95rem' }}>
-              Bs <span style={{ fontSize: '1.05rem' }}>{precio}</span>
-            </span>
-            {waNumber && (
-              <CButton
-                style={{ background: '#25D366', border: 'none', color:'white' }}
-                shape="square"
-                size="sm"
-                onClick={openWhatsApp} 
-                
-                title="Consultar por WhatsApp"
-              >
-                <CIcon icon={cibWhatsapp} size={'sm'} />
-              </CButton>
-            )}
-          </div>
-        </CCardBody>
-      </CCard>
-    </CCol>
+        {product.code && (
+          <div className="catalogo-card__code">#{product.code}</div>
+        )}
+
+        <div className="catalogo-card__price-label">Precio</div>
+        <div className="catalogo-card__price">Bs {precio}</div>
+
+        <div className="catalogo-card__actions">
+          {waNumber && (
+            <button className="catalogo-card__wa" onClick={openWhatsApp}>
+              <CIcon icon={cibWhatsapp} style={{ width: 15, height: 15 }} />
+              Consultar por WhatsApp
+            </button>
+          )}
+          <button className="catalogo-card__detalle" onClick={() => onDetalle(product)}>
+            Ver detalles
+          </button>
+        </div>
+      </div>
+    </div>
   )
 })
 
