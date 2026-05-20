@@ -123,6 +123,7 @@ class EntryController extends Controller
         $perPage   = $request->input('limit', 5);
         $page      = $request->input('page', 1);
         $search    = $request->input('search', '');
+        $code      = $request->input('code', '');
         $trashed   = $request->boolean('trashed', false);
         $startDate = $request->input('start_date', '');
         $endDate   = $request->input('end_date', '');
@@ -143,6 +144,14 @@ class EntryController extends Controller
                     $eq->whereHas('product', function ($pq) use ($search) {
                         $pq->where('name', 'like', "%$search%");
                     });
+                });
+            });
+        }
+
+        if (!empty($code)) {
+            $query->whereHas('entryDetails', function ($eq) use ($code) {
+                $eq->whereHas('product', function ($pq) use ($code) {
+                    $pq->where('code', 'like', "%$code%");
                 });
             });
         }
@@ -173,6 +182,7 @@ class EntryController extends Controller
         $perPage   = $request->input('limit', 5);
         $page      = $request->input('page', 1);
         $search    = $request->input('search', '');
+        $code      = $request->input('code', '');
         $trashed   = $request->boolean('trashed', false);
         $startDate = $request->input('start_date', '');
         $endDate   = $request->input('end_date', '');
@@ -193,6 +203,14 @@ class EntryController extends Controller
                     $eq->whereHas('product', function ($pq) use ($search) {
                         $pq->where('name', 'like', "%$search%");
                     });
+                });
+            });
+        }
+
+        if (!empty($code)) {
+            $query->whereHas('entryDetails', function ($eq) use ($code) {
+                $eq->whereHas('product', function ($pq) use ($code) {
+                    $pq->where('code', 'like', "%$code%");
                 });
             });
         }

@@ -38,6 +38,7 @@ const TablaSalidas = () => {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const searchRef = useRef('')
+  const codeRef = useRef('')
   const debounceTimer = useRef(null)
 
   const [pagination, setPagination] = useState({ pageIndex: 1, pageSize: 5 })
@@ -48,7 +49,7 @@ const TablaSalidas = () => {
   }
 
   useEffect(() => {
-    getSalidas(pagination.pageIndex, pagination.pageSize, searchRef.current, showDeleted, startDate, endDate)
+    getSalidas(pagination.pageIndex, pagination.pageSize, searchRef.current, showDeleted, startDate, endDate, codeRef.current)
   }, [pagination, showDeleted, startDate, endDate])
 
   const handleSearch = ({ target }) => {
@@ -56,7 +57,16 @@ const TablaSalidas = () => {
     debounceTimer.current = setTimeout(() => {
       searchRef.current = target.value
       setPagination((p) => ({ ...p, pageIndex: 1 }))
-      getSalidas(1, pagination.pageSize, target.value, showDeleted, startDate, endDate)
+      getSalidas(1, pagination.pageSize, target.value, showDeleted, startDate, endDate, codeRef.current)
+    }, 500)
+  }
+
+  const handleCodeSearch = ({ target }) => {
+    clearTimeout(debounceTimer.current)
+    debounceTimer.current = setTimeout(() => {
+      codeRef.current = target.value
+      setPagination((p) => ({ ...p, pageIndex: 1 }))
+      getSalidas(1, pagination.pageSize, searchRef.current, showDeleted, startDate, endDate, target.value)
     }, 500)
   }
 
@@ -189,6 +199,15 @@ const TablaSalidas = () => {
             placeholder="Sucursal, producto o comentarios..."
             onChange={handleSearch}
             style={{ maxWidth: '260px' }}
+          />
+        </div>
+        <div className="d-flex flex-column">
+          <small className="text-medium-emphasis mb-1">Código de artículo</small>
+          <CFormInput
+            size="sm"
+            placeholder="Ej: ART-001"
+            onChange={handleCodeSearch}
+            style={{ maxWidth: '160px' }}
           />
         </div>
         <div className="d-flex flex-column">

@@ -39,6 +39,15 @@ class AuditLogController extends Controller
         if ($request->filled('end_date')) {
             $query->whereDate('created_at', '<=', $request->end_date);
         }
+        if ($request->filled('user_search')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->user_search . '%')
+                  ->orWhere('lastname', 'like', '%' . $request->user_search . '%');
+            });
+        }
+        if ($request->filled('record')) {
+            $query->where('model_label', 'like', '%' . $request->record . '%');
+        }
 
         $perPage = min((int) $request->get('per_page', 50), 200);
         $logs = $query->paginate($perPage);

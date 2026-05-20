@@ -53,6 +53,8 @@ const LogDeActividad = () => {
   const [filters, setFilters] = useState({
     action: '',
     model: '',
+    user_search: '',
+    record: '',
     start_date: today,
     end_date: today,
   })
@@ -95,7 +97,7 @@ const LogDeActividad = () => {
           <CCardBody>
             {/* Filtros */}
             <CRow className="mb-3 g-2">
-              <CCol xs="6" md="3">
+              <CCol xs="6" md="2">
                 <CFormSelect
                   size="sm"
                   name="action"
@@ -108,20 +110,38 @@ const LogDeActividad = () => {
                   ))}
                 </CFormSelect>
               </CCol>
-              <CCol xs="6" md="3">
+              <CCol xs="6" md="2">
                 <CFormSelect
                   size="sm"
                   name="model"
                   value={filters.model}
                   onChange={handleFilterChange}
                 >
-                  <option value="">Todos los modelos</option>
+                  <option value="">Todos los módulos</option>
                   {models.map((m) => (
                     <option key={m} value={m}>{m}</option>
                   ))}
                 </CFormSelect>
               </CCol>
-              <CCol xs="6" md="3">
+              <CCol xs="6" md="2">
+                <CFormInput
+                  size="sm"
+                  name="user_search"
+                  value={filters.user_search}
+                  onChange={handleFilterChange}
+                  placeholder="Buscar usuario..."
+                />
+              </CCol>
+              <CCol xs="6" md="2">
+                <CFormInput
+                  size="sm"
+                  name="record"
+                  value={filters.record}
+                  onChange={handleFilterChange}
+                  placeholder="Buscar registro..."
+                />
+              </CCol>
+              <CCol xs="6" md="2">
                 <CFormInput
                   type="date"
                   size="sm"
@@ -130,7 +150,7 @@ const LogDeActividad = () => {
                   onChange={handleFilterChange}
                 />
               </CCol>
-              <CCol xs="6" md="3">
+              <CCol xs="6" md="2">
                 <CFormInput
                   type="date"
                   size="sm"

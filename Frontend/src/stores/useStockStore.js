@@ -16,7 +16,7 @@ export const useStockStore = create((set) => ({
   entrada: emptyEntrada,
   error: emptyError,
 
-  getEntradas: async (page = 1, limit = 5, search = '', trashed = false, startDate = '', endDate = '') => {
+  getEntradas: async (page = 1, limit = 5, search = '', trashed = false, startDate = '', endDate = '', code = '') => {
     const { startLoading, finishLoading } = useUIStore.getState()
     startLoading()
     try {
@@ -25,6 +25,7 @@ export const useStockStore = create((set) => ({
       if (trashed) url += `&trashed=1`
       if (startDate) url += `&start_date=${startDate}`
       if (endDate) url += `&end_date=${endDate}`
+      if (code) url += `&code=${encodeURIComponent(code)}`
       const response = await api.get(url)
       set({
         entradas: response.data.data,
@@ -39,7 +40,7 @@ export const useStockStore = create((set) => ({
     }
   },
 
-  getSalidas: async (page = 1, limit = 5, search = '', trashed = false, startDate = '', endDate = '') => {
+  getSalidas: async (page = 1, limit = 5, search = '', trashed = false, startDate = '', endDate = '', code = '') => {
     const { startLoading, finishLoading } = useUIStore.getState()
     startLoading()
     try {
@@ -48,6 +49,7 @@ export const useStockStore = create((set) => ({
       if (trashed) url += `&trashed=1`
       if (startDate) url += `&start_date=${startDate}`
       if (endDate) url += `&end_date=${endDate}`
+      if (code) url += `&code=${encodeURIComponent(code)}`
       const response = await api.get(url)
       set({
         salidas: response.data.data,
